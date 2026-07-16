@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTickets } from '../../context/TicketContext';
-import { 
-  Check, 
-  MapPin, 
-  Upload, 
-  File, 
-  X, 
-  ArrowLeft, 
-  ArrowRight, 
-  ShieldAlert, 
+import {
+  Check,
+  MapPin,
+  Upload,
+  File,
+  X,
+  ArrowLeft,
+  ArrowRight,
+  ShieldAlert,
   ClipboardCheck,
   CheckCircle2,
   Trash2,
@@ -156,7 +156,7 @@ const SubmitTicketWizard = () => {
     if (parts.length < 2) return val;
     return `${parts[0].charAt(0)}***@${parts[1]}`;
   };
-  
+
   // Form State
   const [category, setCategory] = useState('Complaint');
   const [department, setDepartment] = useState('Infrastructure');
@@ -172,26 +172,26 @@ const SubmitTicketWizard = () => {
     if (val.trim() === '') {
       setFilteredSuggestions([]);
     } else {
-      const filtered = ALLOWED_LOCATIONS.filter(loc => 
+      const filtered = ALLOWED_LOCATIONS.filter(loc =>
         loc.toLowerCase().includes(val.toLowerCase())
       );
       setFilteredSuggestions(filtered.slice(0, 5));
     }
   };
-  
+
   // Simulated Interactive Map Coordinates
   const [coordinates, setCoordinates] = useState({ lat: 14.9490, lng: 120.7608 });
   const [address, setAddress] = useState('Brgy. Hall, San Vicente');
   const [landmark, setLandmark] = useState('');
   const [mapClicked, setMapClicked] = useState(false);
-  
+
   // Subject and Description
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
-  
+
   // Attachments State
   const [attachments, setAttachments] = useState([]);
-  
+
   // Checkbox for terms
   const [termsAgreed, setTermsAgreed] = useState(false);
 
@@ -222,7 +222,7 @@ const SubmitTicketWizard = () => {
         else if (preselected === 'Service Request') setDepartment('Sanitation');
         else setDepartment('Administrative Services');
       }
-      
+
       localStorage.removeItem('blink_preselected_category');
       localStorage.removeItem('blink_preselected_department');
     }
@@ -251,7 +251,7 @@ const SubmitTicketWizard = () => {
       if (!address.trim()) {
         errors.address = 'Street Address is required.';
       } else {
-        const isValid = ALLOWED_LOCATIONS.some(loc => 
+        const isValid = ALLOWED_LOCATIONS.some(loc =>
           address.toLowerCase().includes(loc.toLowerCase())
         );
         if (!isValid) {
@@ -391,7 +391,7 @@ const SubmitTicketWizard = () => {
         const isCurrent = s === step;
         const isCompleted = s < step;
         const isClickable = s <= highestStep;
-        
+
         return (
           <button
             key={s}
@@ -400,10 +400,10 @@ const SubmitTicketWizard = () => {
             }}
             disabled={!isClickable}
             className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold transition-all focus:outline-none
-              ${isCurrent ? 'bg-blue-600 text-white shadow-sm' : 
-                isCompleted ? 'bg-blue-100 text-blue-700 cursor-pointer hover:bg-blue-200' : 
-                isClickable ? 'bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200' :
-                'bg-slate-50 text-slate-300 cursor-not-allowed border border-slate-100'}
+              ${isCurrent ? 'bg-blue-600 text-white shadow-sm' :
+                isCompleted ? 'bg-blue-100 text-blue-700 cursor-pointer hover:bg-blue-200' :
+                  isClickable ? 'bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200' :
+                    'bg-slate-50 text-slate-300 cursor-not-allowed border border-slate-100'}
             `}
           >
             {s}
@@ -421,19 +421,19 @@ const SubmitTicketWizard = () => {
 
         {/* Form Body content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          
+
           {/* STEP 1: CATEGORY SELECTION */}
           {step === 1 && (
             <div className="flex flex-col h-full bg-white">
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="font-bold text-slate-900 text-sm tracking-wide">Select Category</span>
-                
+
                 {/* Numbered stepper */}
                 {renderStepper()}
 
-                <button 
-                  onClick={() => setCurrentRoute('resident-home')} 
+                <button
+                  onClick={() => setCurrentRoute('resident-home')}
                   className="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -458,8 +458,8 @@ const SubmitTicketWizard = () => {
                       onClick={() => handleCategorySelect(item.id)}
                       className={`
                         w-full text-left p-4 rounded-xl border flex items-center gap-4 transition-all duration-200 cursor-pointer focus:outline-none
-                        ${category === item.id 
-                          ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-50/30 shadow-sm' 
+                        ${category === item.id
+                          ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-50/30 shadow-sm'
                           : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 bg-white'}
                       `}
                     >
@@ -504,12 +504,12 @@ const SubmitTicketWizard = () => {
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="font-bold text-slate-900 text-sm tracking-wide">Concern Details</span>
-                
+
                 {/* Numbered stepper */}
                 {renderStepper()}
 
-                <button 
-                  onClick={() => setCurrentRoute('resident-home')} 
+                <button
+                  onClick={() => setCurrentRoute('resident-home')}
                   className="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -518,14 +518,14 @@ const SubmitTicketWizard = () => {
 
               {/* Body */}
               <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar text-left w-full mx-auto" style={{ maxWidth: '44rem' }}>
-                
+
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-800 block">Subject <span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Brief summary of the issue" 
+                    placeholder="Brief summary of the issue"
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                   />
                   {validationErrors.subject && <p className="text-red-500 text-xs font-semibold">{validationErrors.subject}</p>}
@@ -533,11 +533,11 @@ const SubmitTicketWizard = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-800 block">Description <span className="text-red-500">*</span></label>
-                  <textarea 
+                  <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    placeholder="Please describe the issue in detail. Include any relevant landmarks or specific context." 
+                    placeholder="Please describe the issue in detail. Include any relevant landmarks or specific context."
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400 resize-none"
                   />
                   {validationErrors.description && <p className="text-red-500 text-xs font-semibold">{validationErrors.description}</p>}
@@ -547,8 +547,8 @@ const SubmitTicketWizard = () => {
                 <div className="space-y-2 pt-2">
                   <label className="text-xs font-bold text-slate-800 block">Photo / Video (Optional)</label>
                   <div className="relative border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-2xl hover:border-blue-400 transition-colors p-8 text-center cursor-pointer flex flex-col items-center justify-center gap-2">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       multiple
                       onChange={handleFileUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
@@ -568,7 +568,7 @@ const SubmitTicketWizard = () => {
                             {file.name}
                             <span className="text-slate-400 font-normal">({file.size})</span>
                           </div>
-                          <button 
+                          <button
                             onClick={() => removeAttachment(idx)}
                             className="p-1 hover:bg-red-50 hover:text-red-500 rounded text-slate-400 cursor-pointer focus:outline-none"
                           >
@@ -609,12 +609,12 @@ const SubmitTicketWizard = () => {
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="font-bold text-slate-900 text-sm tracking-wide">Issue Location</span>
-                
+
                 {/* Numbered stepper */}
                 {renderStepper()}
 
-                <button 
-                  onClick={() => setCurrentRoute('resident-home')} 
+                <button
+                  onClick={() => setCurrentRoute('resident-home')}
                   className="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -623,21 +623,21 @@ const SubmitTicketWizard = () => {
 
               {/* Body */}
               <div className="p-6 flex-1 overflow-y-auto custom-scrollbar flex flex-col w-full mx-auto" style={{ maxWidth: '44rem' }}>
-                
+
                 {/* Map Area */}
                 <div className="relative h-64 w-full rounded-2xl border border-slate-200 overflow-hidden mb-6 flex-shrink-0">
                   {/* Google Maps Embed */}
                   <div className="absolute inset-0 bg-slate-100">
-                    <iframe 
-                      width="100%" 
-                      height="100%" 
-                      style={{ border: 0 }} 
-                      loading="lazy" 
-                      allowFullScreen 
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
                       src={`https://maps.google.com/maps?q=${encodeURIComponent(address + ', San Vicente, Apalit, Pampanga')}&t=m&z=15&ie=UTF8&iwloc=&output=embed`}
                     ></iframe>
                   </div>
-                  
+
                   {/* Top-left marker */}
                   <div className="absolute top-4 left-4 flex items-center gap-2 z-10 text-blue-700 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm text-xs font-bold border border-blue-100">
                     <MapPin className="w-4 h-4 fill-blue-700" />
@@ -666,13 +666,13 @@ const SubmitTicketWizard = () => {
                 <div className="space-y-4">
                   <div className="space-y-2 relative">
                     <label className="text-xs font-bold text-slate-800 block">Street Address <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={address}
                       onChange={(e) => handleAddressChange(e.target.value)}
                       onFocus={() => setShowSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      placeholder="e.g. Bagong Pag-Asa, Jollibee, etc." 
+                      placeholder="e.g. Bagong Pag-Asa, Jollibee, etc."
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                     />
                     {showSuggestions && filteredSuggestions.length > 0 && (
@@ -698,11 +698,11 @@ const SubmitTicketWizard = () => {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-800 block">Nearby Landmark (Optional)</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
-                      placeholder="e.g. Near the Central Park fountain" 
+                      placeholder="e.g. Near the Central Park fountain"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                     />
                   </div>
@@ -736,12 +736,12 @@ const SubmitTicketWizard = () => {
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="font-bold text-slate-900 text-sm tracking-wide">Contact Information</span>
-                
+
                 {/* Numbered stepper */}
                 {renderStepper()}
 
-                <button 
-                  onClick={() => setCurrentRoute('resident-home')} 
+                <button
+                  onClick={() => setCurrentRoute('resident-home')}
                   className="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -750,7 +750,7 @@ const SubmitTicketWizard = () => {
 
               {/* Body */}
               <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar text-left w-full mx-auto" style={{ maxWidth: '44rem' }}>
-                
+
                 {/* Secure info box */}
                 <div className="bg-blue-50 text-blue-700 flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100">
                   <User className="w-5 h-5 shrink-0" />
@@ -760,11 +760,11 @@ const SubmitTicketWizard = () => {
                 <div className="space-y-4 pt-2">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-800 block">Full Name <span className="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Juan dela Cruz" 
+                      placeholder="e.g. Juan dela Cruz"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                     />
                     {validationErrors.name && <p className="text-red-500 text-xs font-semibold">{validationErrors.name}</p>}
@@ -772,11 +772,11 @@ const SubmitTicketWizard = () => {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-800 block">Email Address <span className="text-red-500">*</span></label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. juan@example.com" 
+                      placeholder="e.g. juan@example.com"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                     />
                     <p className="text-[10px] font-medium text-slate-500">We will send an email confirmation using this address.</p>
@@ -789,11 +789,11 @@ const SubmitTicketWizard = () => {
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Phone className="w-4 h-4 text-slate-400" />
                       </div>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+63 (900) 000-0000" 
+                        placeholder="+63 (900) 000-0000"
                         className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-colors placeholder-slate-400"
                       />
                     </div>
@@ -836,8 +836,8 @@ const SubmitTicketWizard = () => {
             <div className="flex flex-col h-full bg-white">
               {/* Header */}
               <div className="px-6 pt-6 pb-4 flex flex-col items-center justify-center text-center shrink-0 relative">
-                <button 
-                  onClick={() => setCurrentRoute('resident-home')} 
+                <button
+                  onClick={() => setCurrentRoute('resident-home')}
                   className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -849,7 +849,7 @@ const SubmitTicketWizard = () => {
                     {renderStepper()}
                   </div>
                 </div>
-                
+
                 <h2 className="font-heading font-extrabold text-2xl text-slate-900 tracking-tight">Step 5 of 5: Final Review</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1 max-w-md">Please review your details carefully before submitting. Once submitted, tickets cannot be changed or recalled.</p>
                 <div className="w-full h-1 bg-blue-600 rounded-full mt-6"></div>
@@ -857,7 +857,7 @@ const SubmitTicketWizard = () => {
 
               {/* Body */}
               <div className="px-6 py-2 pb-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar text-left w-full mx-auto" style={{ maxWidth: '44rem' }}>
-                
+
                 {/* Ticket Info Box */}
                 <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
                   <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
@@ -902,12 +902,12 @@ const SubmitTicketWizard = () => {
                         <p className="text-sm font-bold text-slate-800 leading-tight">{address || 'No address provided'}</p>
                       </div>
                       <div className="bg-slate-100 rounded-lg flex-1 min-h-[120px] relative overflow-hidden">
-                        <iframe 
-                          width="100%" 
-                          height="100%" 
-                          style={{ border: 0 }} 
-                          loading="lazy" 
-                          allowFullScreen 
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          allowFullScreen
                           src={`https://maps.google.com/maps?q=${encodeURIComponent(address + ', San Vicente, Apalit, Pampanga')}&t=m&z=15&ie=UTF8&iwloc=&output=embed`}
                         ></iframe>
                       </div>
@@ -936,7 +936,7 @@ const SubmitTicketWizard = () => {
                           <p className="text-sm font-bold text-slate-800 leading-tight">{name || 'No name provided'}</p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-3 pt-2">
                         <div>
                           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email Address</span>
@@ -964,9 +964,9 @@ const SubmitTicketWizard = () => {
                 {/* Consent & Submit Box */}
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mt-6 mb-2">
                   <div className="flex items-start gap-3">
-                    <input 
-                      type="checkbox" 
-                      id="agree-terms" 
+                    <input
+                      type="checkbox"
+                      id="agree-terms"
                       checked={termsAgreed}
                       onChange={(e) => setTermsAgreed(e.target.checked)}
                       className="w-4 h-4 accent-blue-600 mt-0.5 cursor-pointer shrink-0"
@@ -993,7 +993,7 @@ const SubmitTicketWizard = () => {
           {step === 6 && (
             <div className="flex flex-col h-full bg-white overflow-y-auto custom-scrollbar pb-10">
               <div className="flex-1 flex flex-col items-center justify-center py-10 px-6 max-w-lg mx-auto w-full">
-                
+
                 {/* Check Icon */}
                 <div className="w-20 h-20 rounded-full border-[4px] border-blue-700 flex items-center justify-center mb-6 bg-white shrink-0 shadow-sm">
                   <Check className="w-10 h-10 text-blue-700 stroke-[3]" />
@@ -1013,7 +1013,7 @@ const SubmitTicketWizard = () => {
                       <div className="flex items-center gap-3">
                         <span className="font-mono font-bold text-2xl text-blue-700 tracking-widest uppercase select-all">{successTicketId}</span>
                         <button onClick={() => {
-                            navigator.clipboard.writeText(successTicketId);
+                          navigator.clipboard.writeText(successTicketId);
                         }} className="text-blue-700 hover:text-blue-800 p-1.5 bg-blue-100/50 hover:bg-blue-100 rounded-md transition-colors focus:outline-none cursor-pointer" title="Copy Ticket Number">
                           <Copy className="w-4 h-4" />
                         </button>
@@ -1024,17 +1024,17 @@ const SubmitTicketWizard = () => {
                   {/* Grid details & QR */}
                   <div className="p-6 flex flex-col sm:flex-row gap-8">
                     <div className="flex-1 grid grid-cols-2 gap-y-6 gap-x-4">
-                      
+
                       <div>
                         <span className="text-[10px] font-medium text-slate-500 mb-1 block">Submitted On</span>
                         <span className="text-xs font-bold text-slate-900">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} &middot; {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                       </div>
-                      
+
                       <div>
                         <span className="text-[10px] font-medium text-slate-500 mb-1 block">Category</span>
                         <span className="text-xs font-bold text-slate-900">{category || 'Complaint'}</span>
                       </div>
-                      
+
                       <div>
                         <span className="text-[10px] font-medium text-slate-500 mb-1 block">Estimated Resolution</span>
                         <span className="text-xs font-bold text-slate-900">Within 48 Business Hours</span>
@@ -1049,21 +1049,21 @@ const SubmitTicketWizard = () => {
                       </div>
 
                     </div>
-                    
+
                     {/* QR Code */}
                     <div className="w-32 flex flex-col items-center justify-center shrink-0 border border-slate-205 rounded-xl px-4 py-5 bg-white gap-4 mx-auto sm:mx-0 shadow-sm">
                       <div className="w-full aspect-square relative flex items-center justify-center">
-                        <img 
+                        <img
                           src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(successTicketId)}`}
-                          alt="Ticket QR Code" 
+                          alt="Ticket QR Code"
                           className="w-full h-full object-contain"
                         />
                       </div>
                       <span className="text-[11px] font-medium text-[#4a6b8c] text-center leading-[1.3]">
-                        Scan to track via<br/>mobile
+                        Scan to track via<br />mobile
                       </span>
-                      
-                      <button 
+
+                      <button
                         onClick={async () => {
                           try {
                             const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(successTicketId)}`);
@@ -1123,7 +1123,7 @@ const SubmitTicketWizard = () => {
           {submitting && (
             <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-8 items-center text-center animate-scale-up shrink-0 space-y-6">
-                
+
                 {/* Spinner wheel with icon */}
                 <div className="relative w-16 h-16 flex items-center justify-center">
                   <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-blue-600 animate-spin"></div>
@@ -1142,7 +1142,7 @@ const SubmitTicketWizard = () => {
                 {/* Progress bar container */}
                 <div className="w-full space-y-2.5">
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
-                    <div 
+                    <div
                       className="bg-blue-600 h-full rounded-full transition-all duration-300"
                       style={{ width: `${submitProgress}%` }}
                     ></div>
