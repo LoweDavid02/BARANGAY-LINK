@@ -20,6 +20,13 @@ class TicketController extends Controller
 {
     /**
      * Resident: Submit a new ticket/concern.
+     * 
+     * Error handling:
+     * - Catches QueryException for database connection issues (returns 503)
+     * - Catches general Exception for other errors (returns 500)
+     * - Logs detailed error information for debugging
+     * - Returns user-friendly error messages
+     * - Includes debug details only when APP_DEBUG=true
      */
     public function store(Request $request)
     {
@@ -42,93 +49,117 @@ class TicketController extends Controller
             'evidence_photo' => 'nullable|string|max:255',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            // Find or create resident
-            $resident = Resident::firstOrCreate(
-                ['email' => $request->submitter['email']],
-                [
-                    'name' => $request->submitter['name'],
-                    'phone' => $request->submitter['phone']
-                ]
-            );
+        try {
+            return DB::transaction(function () use ($request) {
+                // Find or create resident
+                $resident = Resident::firstOrCreate(
+                    ['email' => $request->submitter['email']],
+                    [
+                        'name' => $request->submitter['name'],
+                        'phone' => $request->submitter['phone']
+                    ]
+                );
 
-            // Generate unique ticket ID: TC-2026-XXXXX
-            do {
-                $ticketId = 'TC-2026-' . rand(10000, 99999);
-            } while (Ticket::where('id', $ticketId)->exists());
+                // Generate unique ticket ID: TC-2026-XXXXX
+                do {
+                    $ticketId = 'TC-2026-' . rand(10000, 99999);
+                } while (Ticket::where('id', $ticketId)->exists());
 
-            // Create Ticket
-            $ticket = Ticket::create([
-                'id' => $ticketId,
-                'category' => $request->category,
-                'department' => $request->department,
-                'subject' => $request->subject,
-                'description' => $request->description,
-                'status' => 'Submitted',
-                'priority' => $request->priority ?? 'Medium',
-                'progress' => 10,
-                'asset_id' => $request->asset_id,
-                'last_inspection' => $request->last_inspection,
-                'source' => $request->source ?? 'Web Portal',
-                'evidence_photo' => $request->evidence_photo,
-                'resident_id' => $resident->id,
-            ]);
-
-            // Create Location
-            TicketLocation::create([
-                'ticket_id' => $ticketId,
-                'latitude' => $request->location['lat'],
-                'longitude' => $request->location['lng'],
-                'address' => $request->location['address'],
-            ]);
-
-            // Create Initial History
-            TicketHistory::create([
-                'ticket_id' => $ticketId,
-                'action' => 'Ticket Submitted',
-                'performed_by' => $resident->name . ' (Resident)',
-            ]);
-
-            // Create Audit Log
-            AuditLog::create([
-                'ticket_id' => $ticketId,
-                'action' => 'Create',
-                'details' => $resident->name . ' submitted ticket: "' . $request->subject . '"',
-                'user_name' => $resident->name,
-                'log_type' => 'info',
-            ]);
-
-            // Notify Admins
-            $admins = User::where('user_type', 'admin')->get();
-            foreach ($admins as $admin) {
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'notification_type' => 'status',
-                    'title' => 'New Ticket Submitted',
-                    'message' => 'A new ticket "' . $request->subject . '" was submitted by ' . $resident->name,
-                    'is_read' => false,
+                // Create Ticket
+                $ticket = Ticket::create([
+                    'id' => $ticketId,
+                    'category' => $request->category,
+                    'department' => $request->department,
+                    'subject' => $request->subject,
+                    'description' => $request->description,
+                    'status' => 'Submitted',
+                    'priority' => $request->priority ?? 'Medium',
+                    'progress' => 10,
+                    'asset_id' => $request->asset_id,
+                    'last_inspection' => $request->last_inspection,
+                    'source' => $request->source ?? 'Web Portal',
+                    'evidence_photo' => $request->evidence_photo,
+                    'resident_id' => $resident->id,
                 ]);
-            }
 
-            // Send email to resident (use first admin's email as sender)
-            try {
-                $adminSender = User::where('user_type', 'admin')->first();
-                $senderEmail = $adminSender ? $adminSender->email : config('mail.from.address');
-                $senderName = 'Barangay Link - San Vicente';
-                $recipientEmail = $resident->email;
-                $subject = "Ticket #{$ticketId} Submitted Successfully";
-                Mail::raw("Hello {$resident->name},\n\nYour ticket '{$ticket->subject}' has been successfully submitted to Barangay San Vicente, Apalit, Pampanga.\n\nYour Tracking ID: {$ticketId}\n\nYou can track the live status of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
-                    $message->from($senderEmail, $senderName)->to($recipientEmail)->subject($subject);
-                });
-            } catch (\Throwable $e) {
-                \Log::error("Failed to send submission email to {$resident->email}: " . $e->getMessage());
-            }
+                // Create Location
+                TicketLocation::create([
+                    'ticket_id' => $ticketId,
+                    'latitude' => $request->location['lat'],
+                    'longitude' => $request->location['lng'],
+                    'address' => $request->location['address'],
+                ]);
 
+                // Create Initial History
+                TicketHistory::create([
+                    'ticket_id' => $ticketId,
+                    'action' => 'Ticket Submitted',
+                    'performed_by' => $resident->name . ' (Resident)',
+                ]);
+
+                // Create Audit Log
+                AuditLog::create([
+                    'ticket_id' => $ticketId,
+                    'action' => 'Create',
+                    'details' => $resident->name . ' submitted ticket: "' . $request->subject . '"',
+                    'user_name' => $resident->name,
+                    'log_type' => 'info',
+                ]);
+
+                // Notify Admins
+                $admins = User::where('user_type', 'admin')->get();
+                foreach ($admins as $admin) {
+                    Notification::create([
+                        'user_id' => $admin->id,
+                        'notification_type' => 'status',
+                        'title' => 'New Ticket Submitted',
+                        'message' => 'A new ticket "' . $request->subject . '" was submitted by ' . $resident->name,
+                        'is_read' => false,
+                    ]);
+                }
+
+                // Send email to resident (use first admin's email as sender)
+                try {
+                    $adminSender = User::where('user_type', 'admin')->first();
+                    $senderEmail = $adminSender ? $adminSender->email : config('mail.from.address');
+                    $senderName = 'Barangay Link - San Vicente';
+                    $recipientEmail = $resident->email;
+                    $subject = "Ticket #{$ticketId} Submitted Successfully";
+                    Mail::raw("Hello {$resident->name},\n\nYour ticket '{$ticket->subject}' has been successfully submitted to Barangay San Vicente, Apalit, Pampanga.\n\nYour Tracking ID: {$ticketId}\n\nYou can track the live status of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
+                        $message->from($senderEmail, $senderName)->to($recipientEmail)->subject($subject);
+                    });
+                } catch (\Throwable $e) {
+                    \Log::error("Failed to send submission email to {$resident->email}: " . $e->getMessage());
+                }
+
+                return response()->json([
+                    'message' => 'Ticket submitted successfully',
+                    'ticket_id' => $ticketId
+                ], 201);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error during ticket creation: ' . $e->getMessage(), [
+                'exception' => $e,
+                'sql_state' => $e->errorInfo[0] ?? 'unknown',
+                'error_code' => $e->errorInfo[1] ?? 'unknown',
+            ]);
+            
             return response()->json([
-                'message' => 'Ticket submitted successfully',
-                'ticket_id' => $ticketId
-            ], 201);
-        });
+                'message' => 'Database connection error. Please try again later or contact support if the issue persists.',
+                'error' => 'Unable to connect to database',
+                'details' => config('app.debug') ? $e->getMessage() : null,
+            ], 503);
+        } catch (\Exception $e) {
+            \Log::error('Error creating ticket: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return response()->json([
+                'message' => 'An error occurred while creating the ticket. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
+            ], 500);
+        }
     }
 
     /**
