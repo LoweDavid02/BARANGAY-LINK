@@ -2,7 +2,20 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TicketContext = createContext();
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_BASE) {
+    return import.meta.env.VITE_API_BASE;
+  }
+  const hostname = window.location.hostname;
+  if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    if (hostname.includes('barangay-link-project')) {
+      return 'https://barangay-link-backend.onrender.com/api';
+    }
+  }
+  return 'http://localhost:8000/api';
+};
+
+const API_BASE = getApiBase();
 
 // Mock Initial Fallbacks (used as fallback or pre-login placeholders)
 const initialTickets = [
