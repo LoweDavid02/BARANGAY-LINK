@@ -13,6 +13,12 @@ php artisan migrate --force || echo "Migration failed! Please check your DATABAS
 # Start Reverb server in the background
 php artisan reverb:start --host=127.0.0.1 --port=8080 &
 
+# Clear configuration, cache, route, and views to avoid stale configs
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
 # Start php-fpm in background
 php-fpm -D
 
