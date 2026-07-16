@@ -10,13 +10,15 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     nginx \
-    libpq-dev
+    libpq-dev \
+    libzip-dev \
+    libicu-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_pgsql pgsql mbstring xml exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_pgsql pgsql mbstring xml exif pcntl bcmath gd sockets zip intl
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -31,7 +33,7 @@ COPY . /var/www
 COPY --chown=www-data:www-data . /var/www
 
 # Install Composer dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+RUN composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-reqs
 
 # Copy Nginx Configuration
 COPY nginx.conf /etc/nginx/sites-available/default
