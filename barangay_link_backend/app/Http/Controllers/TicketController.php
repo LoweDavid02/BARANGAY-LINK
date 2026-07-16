@@ -292,7 +292,8 @@ class TicketController extends Controller
             return response()->json(['message' => 'Ticket not found'], 404);
         }
 
-        return DB::transaction(function () use ($ticket, $request) {
+        try {
+            return DB::transaction(function () use ($ticket, $request) {
             $oldPersonnelId = $ticket->assigned_personnel_id;
             $newPersonnelId = $request->personnel_id;
 
@@ -328,7 +329,7 @@ class TicketController extends Controller
 
             if ($newPersonnelId) {
                 $newPersonnel = Personnel::with('user')->find($newPersonnelId);
-                if ($newPersonnel) {
+                if ($newPersonnel && $newPersonnel->user) {
                     $newPersonnel->active_tickets_count += 1;
                     $newPersonnel->status = $this->calculatePersonnelStatus($newPersonnel->active_tickets_count);
                     $newPersonnel->save();
@@ -375,6 +376,13 @@ class TicketController extends Controller
                     } catch (\Throwable $e) {
                         \Log::error("Failed to send assignment email: " . $e->getMessage());
                     }
+                } else {
+                    // Personnel not found or has no associated user
+                    \Log::error("Personnel #{$newPersonnelId} not found or has no associated user");
+                    return response()->json([
+                        'message' => 'Personnel not found or has no associated user account',
+                        'error' => 'Invalid personnel assignment'
+                    ], 422);
                 }
             } else {
                 // Create History for unassignment
@@ -399,6 +407,31 @@ class TicketController extends Controller
 
             return response()->json($ticket->load(['assignedPersonnel.user', 'history']));
         });
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error during ticket assignment: ' . $e->getMessage(), [
+                'exception' => $e,
+                'ticket_id' => $id,
+                'personnel_id' => $request->personnel_id,
+            ]);
+            
+            return response()->json([
+                'message' => 'Database error occurred while assigning ticket.',
+                'error' => 'Unable to assign ticket',
+                'details' => config('app.debug') ? $e->getMessage() : null,
+            ], 503);
+        } catch (\Exception $e) {
+            \Log::error('Error assigning ticket: ' . $e->getMessage(), [
+                'exception' => $e,
+                'ticket_id' => $id,
+                'personnel_id' => $request->personnel_id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return response()->json([
+                'message' => 'An error occurred while assigning the ticket.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
+            ], 500);
+        }
     }
 
     /**
