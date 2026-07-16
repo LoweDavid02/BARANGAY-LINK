@@ -1,0 +1,686 @@
+[
+  {
+    "id": "poi-pdz514yl6",
+    "name": "Bagong Pag-Asa Subdivision",
+    "category": "Subdivision",
+    "position": [
+      14.953646919399004,
+      120.75950662622238
+    ]
+  },
+  {
+    "id": "poi-i724fgsel",
+    "name": "Royal Family Homes Subdivision",
+    "category": "Subdivision",
+    "position": [
+      14.945404430288823,
+      120.75939530751248
+    ]
+  },
+  {
+    "id": "poi-jx36u1d88",
+    "name": "San Vicente Phase I",
+    "category": "Subdivision",
+    "position": [
+      14.949593022054525,
+      120.74036873896445
+    ]
+  },
+  {
+    "id": "poi-qc1pejbn5",
+    "name": "San Vicente Phase II",
+    "category": "Subdivision",
+    "position": [
+      14.943994060093328,
+      120.74961066958782
+    ]
+  },
+  {
+    "id": "poi-ua98qr41w",
+    "name": "San Vicente Phase III",
+    "category": "Subdivision",
+    "position": [
+      14.952803620523106,
+      120.74379116640601
+    ]
+  },
+  {
+    "id": "poi-c7yjv6g0c",
+    "name": "San Vicente West",
+    "category": "Subdivision",
+    "position": [
+      14.943647863023793,
+      120.73706386796856
+    ]
+  },
+  {
+    "id": "poi-tc93cei22",
+    "name": "St. Dominic Village",
+    "category": "Subdivision",
+    "position": [
+      14.944080225676139,
+      120.73538983950776
+    ]
+  },
+  {
+    "id": "poi-ea6oh1j45",
+    "name": "St. Peter's Subdivision",
+    "category": "Subdivision",
+    "position": [
+      14.953624680644698,
+      120.74838265439921
+    ]
+  },
+  {
+    "id": "poi-1orv5fmc7",
+    "name": "Villena Subdivision",
+    "category": "Subdivision",
+    "position": [
+      14.95431076611086,
+      120.75499149168213
+    ]
+  },
+  {
+    "id": "poi-sxpn7b30d",
+    "name": "Apalit to Macabebe to Masantol Road",
+    "category": "Street/Area",
+    "position": [
+      14.94192383686149,
+      120.74900101953504
+    ]
+  },
+  {
+    "id": "poi-hjdw3gvxb",
+    "name": "Balite Street",
+    "category": "Street/Area",
+    "position": [
+      14.942575655044095,
+      120.74315691468303
+    ]
+  },
+  {
+    "id": "poi-7lkkkg649",
+    "name": "David Street",
+    "category": "Street/Area",
+    "position": [
+      14.942569218836283,
+      120.73588899501252
+    ]
+  },
+  {
+    "id": "poi-zbx76x4lt",
+    "name": "Macabebe Provincial Road",
+    "category": "Street/Area",
+    "position": [
+      14.950829080527983,
+      120.74308530562402
+    ]
+  },
+  {
+    "id": "poi-z03pj8vcj",
+    "name": "MacArthur Highway",
+    "category": "Street/Area",
+    "position": [
+      14.951670593801516,
+      120.73844315849327
+    ]
+  },
+  {
+    "id": "poi-6auud53kn",
+    "name": "San Juan Road",
+    "category": "Street/Area",
+    "position": [
+      14.94774847132092,
+      120.74220775998933
+    ]
+  },
+  {
+    "id": "poi-sbkv52kmk",
+    "name": "San Vicente to Colgante Road",
+    "category": "Street/Area",
+    "position": [
+      14.952412788523885,
+      120.73631242767365
+    ]
+  },
+  {
+    "id": "poi-90qee79qj",
+    "name": "Sucad Road",
+    "category": "Street/Area",
+    "position": [
+      14.949973831737267,
+      120.75346836828317
+    ]
+  },
+  {
+    "id": "poi-1i9oxeynn",
+    "name": "Apalit Public Market (PalengKeni Apalit)",
+    "category": "Street/Area",
+    "position": [
+      14.949660315427922,
+      120.73637215140245
+    ]
+  },
+  {
+    "id": "poi-e61qjmxut",
+    "name": "Apalit Pnr Station",
+    "category": "Street/Area",
+    "position": [
+      14.954829079169595,
+      120.73596139351056
+    ]
+  },
+  {
+    "id": "poi-bdjjyx15v",
+    "name": "Apalit Town Plaza",
+    "category": "Street/Area",
+    "position": [
+      14.954646681877895,
+      120.75299260573605
+    ]
+  },
+  {
+    "id": "poi-mb3thetvh",
+    "name": "Blue Arcade Building",
+    "category": "Street/Area",
+    "position": [
+      14.954777170820984,
+      120.74307414059687
+    ]
+  },
+  {
+    "id": "poi-pd79uszza",
+    "name": "Brgy. Sulipan Junction",
+    "category": "Street/Area",
+    "position": [
+      14.947167350907126,
+      120.73613508968475
+    ]
+  },
+  {
+    "id": "poi-i41dhy9wm",
+    "name": "Central Business District (Poblacion)",
+    "category": "Street/Area",
+    "position": [
+      14.95257880030941,
+      120.73506913767342
+    ]
+  },
+  {
+    "id": "poi-9cyzh3lng",
+    "name": "Gate 1 Bagong Pag-Asa",
+    "category": "Street/Area",
+    "position": [
+      14.944448594432396,
+      120.7489893024297
+    ]
+  },
+  {
+    "id": "poi-za1sx3kad",
+    "name": "N and C Building",
+    "category": "Street/Area",
+    "position": [
+      14.94477939596757,
+      120.7532101867257
+    ]
+  },
+  {
+    "id": "poi-z6do49kl7",
+    "name": "Sampaga Elementary School",
+    "category": "Street/Area",
+    "position": [
+      14.949325537360197,
+      120.74457320165615
+    ]
+  },
+  {
+    "id": "poi-2zbynqe7d",
+    "name": "Sm Savemore Apalit",
+    "category": "Street/Area",
+    "position": [
+      14.95128349630156,
+      120.7590923651644
+    ]
+  },
+  {
+    "id": "poi-czue9iti9",
+    "name": "Alvin Lunita's Bakery",
+    "category": "Street/Area",
+    "position": [
+      14.94429033151012,
+      120.74547815040675
+    ]
+  },
+  {
+    "id": "poi-pgc90uu4g",
+    "name": "Andok's",
+    "category": "Street/Area",
+    "position": [
+      14.949453428292243,
+      120.76127455742703
+    ]
+  },
+  {
+    "id": "poi-oiv4vavye",
+    "name": "Armenia's Breads Cakes and Pastries",
+    "category": "Business",
+    "position": [
+      14.944578766966522,
+      120.75194631664853
+    ]
+  },
+  {
+    "id": "poi-ciqb6uvn3",
+    "name": "Bes House of Chicken Corp.",
+    "category": "Business",
+    "position": [
+      14.952265014512863,
+      120.742912238314
+    ]
+  },
+  {
+    "id": "poi-vzxjhnqm3",
+    "name": "Big Save Supermarket Corp.",
+    "category": "Business",
+    "position": [
+      14.946809166270288,
+      120.74110271866424
+    ]
+  },
+  {
+    "id": "poi-tv4x2an55",
+    "name": "Bok Korean Fried Chicken",
+    "category": "Business",
+    "position": [
+      14.951797727374942,
+      120.75715624196424
+    ]
+  },
+  {
+    "id": "poi-64ibddigt",
+    "name": "Chowking",
+    "category": "Business",
+    "position": [
+      14.948164906109097,
+      120.74389510520322
+    ]
+  },
+  {
+    "id": "poi-49ikr7hdt",
+    "name": "DelishCheese Dough",
+    "category": "Business",
+    "position": [
+      14.949687259631302,
+      120.74963011992944
+    ]
+  },
+  {
+    "id": "poi-8gjizmr5h",
+    "name": "Domino's Pizza",
+    "category": "Business",
+    "position": [
+      14.9446028477591,
+      120.73790144119133
+    ]
+  },
+  {
+    "id": "poi-ivkjippe8",
+    "name": "Jollibee",
+    "category": "Business",
+    "position": [
+      14.945004296973037,
+      120.73564670028858
+    ]
+  },
+  {
+    "id": "poi-4d69lwgaf",
+    "name": "Kfc",
+    "category": "Business",
+    "position": [
+      14.943677626644279,
+      120.74422127839532
+    ]
+  },
+  {
+    "id": "poi-cztt318yd",
+    "name": "Ma Celang Grill",
+    "category": "Business",
+    "position": [
+      14.954521190618708,
+      120.75160925599502
+    ]
+  },
+  {
+    "id": "poi-r0lb7545t",
+    "name": "Mang Inasal",
+    "category": "Business",
+    "position": [
+      14.951706027111472,
+      120.75718851877679
+    ]
+  },
+  {
+    "id": "poi-z1ab1fde4",
+    "name": "McDonald's",
+    "category": "Business",
+    "position": [
+      14.944820396906065,
+      120.740617358509
+    ]
+  },
+  {
+    "id": "poi-gtl67l9an",
+    "name": "Putak Inasal and Sizzling House",
+    "category": "Business",
+    "position": [
+      14.946507607948831,
+      120.75068986550983
+    ]
+  },
+  {
+    "id": "poi-gju5nnz4t",
+    "name": "Red Dot Lugaw House",
+    "category": "Business",
+    "position": [
+      14.954718641938353,
+      120.74179301438618
+    ]
+  },
+  {
+    "id": "poi-0np49twp3",
+    "name": "Red Ribbon",
+    "category": "Business",
+    "position": [
+      14.94647733352195,
+      120.75386395182457
+    ]
+  },
+  {
+    "id": "poi-e9olt0kfo",
+    "name": "Sushi Yum Yan",
+    "category": "Business",
+    "position": [
+      14.948396781972136,
+      120.74557505919695
+    ]
+  },
+  {
+    "id": "poi-kuphtosup",
+    "name": "The Daily Coffee",
+    "category": "Business",
+    "position": [
+      14.94786092063628,
+      120.75763021561093
+    ]
+  },
+  {
+    "id": "poi-5ox1u5acp",
+    "name": "The Hungry Pita",
+    "category": "Business",
+    "position": [
+      14.942758182547621,
+      120.73577801890455
+    ]
+  },
+  {
+    "id": "poi-vfgww94gy",
+    "name": "A's Mini Hardware",
+    "category": "Business",
+    "position": [
+      14.946742644277574,
+      120.75860607887594
+    ]
+  },
+  {
+    "id": "poi-t9rezrrnk",
+    "name": "Baiku's Bike Parts and Accessories Store",
+    "category": "Business",
+    "position": [
+      14.947462148030372,
+      120.75678563249384
+    ]
+  },
+  {
+    "id": "poi-jq3b03igf",
+    "name": "Blue Box Enterprises",
+    "category": "Business",
+    "position": [
+      14.944886343994195,
+      120.73642871009972
+    ]
+  },
+  {
+    "id": "poi-hk6aid8r4",
+    "name": "Classi-Coo Apparel Store",
+    "category": "Business",
+    "position": [
+      14.94316343292594,
+      120.74165103740528
+    ]
+  },
+  {
+    "id": "poi-unkagm1h4",
+    "name": "Dimpleryann Bike Shop",
+    "category": "Business",
+    "position": [
+      14.941810704314044,
+      120.75005163221957
+    ]
+  },
+  {
+    "id": "poi-b1nqmqqlp",
+    "name": "Federic Sam Boutique",
+    "category": "Business",
+    "position": [
+      14.944777503881731,
+      120.7478521996798
+    ]
+  },
+  {
+    "id": "poi-9vj76t7om",
+    "name": "Quizon General Merchandise",
+    "category": "Business",
+    "position": [
+      14.948198396956357,
+      120.73539992307617
+    ]
+  },
+  {
+    "id": "poi-kx64jo3zs",
+    "name": "Swish-Arki General Merchandise",
+    "category": "Business",
+    "position": [
+      14.948084870246744,
+      120.7525104089869
+    ]
+  },
+  {
+    "id": "poi-pm4y880qr",
+    "name": "Thress Lady's Hardware Trading",
+    "category": "Business",
+    "position": [
+      14.953814058267586,
+      120.73555341594422
+    ]
+  },
+  {
+    "id": "poi-z9b77dvrc",
+    "name": "Yamanari Auto Supply",
+    "category": "Business",
+    "position": [
+      14.952797963881599,
+      120.73913423157643
+    ]
+  },
+  {
+    "id": "poi-ju9251irb",
+    "name": "Zsarenz Motor Parts and General Merchandise",
+    "category": "Business",
+    "position": [
+      14.952750114540551,
+      120.73566156588372
+    ]
+  },
+  {
+    "id": "poi-tetupzw73",
+    "name": "Cabrera Torres Dental Clinic",
+    "category": "Business",
+    "position": [
+      14.94319669246206,
+      120.74837906090345
+    ]
+  },
+  {
+    "id": "poi-7qrxdcofl",
+    "name": "DSmile Lab Dental Clinic",
+    "category": "Business",
+    "position": [
+      14.946466971195923,
+      120.74810065928752
+    ]
+  },
+  {
+    "id": "poi-duqg41r8z",
+    "name": "Harold C. Sunga MD Internal Medicine Adult Clinic",
+    "category": "Business",
+    "position": [
+      14.947516309711158,
+      120.75781125041469
+    ]
+  },
+  {
+    "id": "poi-ufr76uba1",
+    "name": "Oriskin Gluta Wellness Spa",
+    "category": "Business",
+    "position": [
+      14.944442198685902,
+      120.76184456199807
+    ]
+  },
+  {
+    "id": "poi-v224x6a00",
+    "name": "South Star Drug Inc.",
+    "category": "Business",
+    "position": [
+      14.95496528936464,
+      120.7515116424738
+    ]
+  },
+  {
+    "id": "poi-z11j80nhi",
+    "name": "St. Thomas Eyecare Center Inc.",
+    "category": "Business",
+    "position": [
+      14.941503955834,
+      120.74648255485917
+    ]
+  },
+  {
+    "id": "poi-nqfwd9h6k",
+    "name": "Windve Pharmacy and Convenience Store",
+    "category": "Business",
+    "position": [
+      14.94681516872297,
+      120.74581844750614
+    ]
+  },
+  {
+    "id": "poi-gsuif3oo3",
+    "name": "Aqua Mergel Purified Drinking Water",
+    "category": "Business",
+    "position": [
+      14.94500126538916,
+      120.75001538807965
+    ]
+  },
+  {
+    "id": "poi-slfw68os3",
+    "name": "Blue Madonna Memorial",
+    "category": "Business",
+    "position": [
+      14.94967605447906,
+      120.75188911365649
+    ]
+  },
+  {
+    "id": "poi-68bxbqkqb",
+    "name": "Ermie Purified Drinking Water",
+    "category": "Business",
+    "position": [
+      14.950238611220916,
+      120.7389814859653
+    ]
+  },
+  {
+    "id": "poi-0ivmpg1pa",
+    "name": "Hotel Impressa",
+    "category": "Business",
+    "position": [
+      14.944655080974842,
+      120.74290065815639
+    ]
+  },
+  {
+    "id": "poi-eznk3sdgk",
+    "name": "K3Water Refilling Station",
+    "category": "Business",
+    "position": [
+      14.953933910513838,
+      120.75573074817933
+    ]
+  },
+  {
+    "id": "poi-br713couq",
+    "name": "Motor Trade Nationwide Corporation",
+    "category": "Business",
+    "position": [
+      14.951536037778665,
+      120.7366080366921
+    ]
+  },
+  {
+    "id": "poi-8zwznyo6w",
+    "name": "N2B Materials Testing Center and Construction",
+    "category": "Business",
+    "position": [
+      14.943006324424344,
+      120.7513727408103
+    ]
+  },
+  {
+    "id": "poi-zdfs9vlwz",
+    "name": "PremiumBikes Corporation",
+    "category": "Business",
+    "position": [
+      14.947130364049952,
+      120.75519043953284
+    ]
+  },
+  {
+    "id": "poi-5a5dxi6o7",
+    "name": "Royal Anne Apartment",
+    "category": "Business",
+    "position": [
+      14.949921220917535,
+      120.7534077027124
+    ]
+  },
+  {
+    "id": "poi-nqu5vbk9g",
+    "name": "St. Louie Memorial Chapel",
+    "category": "Business",
+    "position": [
+      14.942071339749136,
+      120.76144497990067
+    ]
+  },
+  {
+    "id": "poi-lrsnscteq",
+    "name": "Zarteg Gas Station",
+    "category": "Business",
+    "position": [
+      14.947265203599777,
+      120.74074143212232
+    ]
+  }
+]

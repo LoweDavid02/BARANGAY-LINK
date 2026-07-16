@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Public+Sans:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Public Sans", "Inter", sans-serif;
+  --font-heading: "Public Sans", "Inter", sans-serif;
+  
+  /* Reduced border radius variables globally */
+  --radius-3xl: 12px;
+  --radius-2xl: 8px;
+  --radius-xl: 6px;
+  --radius-lg: 4px;
+  --radius-md: 2px;
+  --radius-sm: 0px;
+
+  --animate-scale-up: scale-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in 0.2s ease-out;
+
+  @keyframes scale-up {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Remove borders from layout elements and container cards to keep layout clean */
+header, 
+aside, 
+.bg-white.rounded-2xl, 
+.bg-white.rounded-3xl {
+  border-width: 0px !important;
+  border-style: none !important;
+  border-color: transparent !important;
+}
+
+/* Ensure inputs, select dropdowns, textareas, and table dividers retain their functional borders */
+input, 
+select, 
+textarea, 
+.border-slate-200:focus-within, 
+table tr, 
+th, 
+td {
+  border-style: solid;
+}
+
