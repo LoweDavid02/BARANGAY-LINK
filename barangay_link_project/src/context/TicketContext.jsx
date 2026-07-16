@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TicketContext = createContext();
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api';
 
 // Mock Initial Fallbacks (used as fallback or pre-login placeholders)
 const initialTickets = [
