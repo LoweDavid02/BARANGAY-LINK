@@ -120,7 +120,7 @@ class TicketController extends Controller
                 Mail::raw("Hello {$resident->name},\n\nYour ticket '{$ticket->subject}' has been successfully submitted to Barangay San Vicente, Apalit, Pampanga.\n\nYour Tracking ID: {$ticketId}\n\nYou can track the live status of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
                     $message->from($senderEmail, $senderName)->to($recipientEmail)->subject($subject);
                 });
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::error("Failed to send submission email to {$resident->email}: " . $e->getMessage());
             }
 
@@ -341,7 +341,7 @@ class TicketController extends Controller
                                         ->subject($subject);
                             });
                         }
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         \Log::error("Failed to send assignment email: " . $e->getMessage());
                     }
                 }
@@ -492,7 +492,7 @@ class TicketController extends Controller
                                 ->subject($subject);
                     });
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::error("Failed to send status update email: " . $e->getMessage());
             }
 
