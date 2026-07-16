@@ -202,6 +202,12 @@ const SubmitTicketWizard = () => {
   // Validation States
   const [validationErrors, setValidationErrors] = useState({});
 
+  // Submission Loader States
+  const [submitting, setSubmitting] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
+  const [submitProgressText, setSubmitProgressText] = useState('COMPILING TICKET DETAILS');
+  const [submitError, setSubmitError] = useState('');
+
   useEffect(() => {
     // Check if there was a pre-selected category from Landing Page
     const preselected = localStorage.getItem('blink_preselected_category');
@@ -315,6 +321,27 @@ const SubmitTicketWizard = () => {
   const handleSubmit = async () => {
     if (!termsAgreed) return;
 
+    setSubmitError('');
+    setSubmitting(true);
+    setSubmitProgress(0);
+    setSubmitProgressText('COMPILING TICKET DETAILS');
+
+    // Simulate progress increments up to 95%
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      currentProgress += 5;
+      if (currentProgress > 95) currentProgress = 95;
+      setSubmitProgress(currentProgress);
+
+      if (currentProgress === 25) {
+        setSubmitProgressText('UPLOADING EVIDENCE & ATTACHMENTS');
+      } else if (currentProgress === 50) {
+        setSubmitProgressText('TRANSMITTING TO BARANGAY SERVER');
+      } else if (currentProgress === 75) {
+        setSubmitProgressText('GENERATING SECURE TRACKING ID');
+      }
+    }, 150);
+
     try {
       const ticketId = await addTicket({
         category,
@@ -326,9 +353,20 @@ const SubmitTicketWizard = () => {
         attachments: attachments.map(a => a.name)
       });
 
-      setSuccessTicketId(ticketId);
-      setStep(6); // Go to Success Screen
+      clearInterval(progressInterval);
+      setSubmitProgress(100);
+      setSubmitProgressText('SUBMISSION SUCCESSFUL');
+
+      setTimeout(() => {
+        setSuccessTicketId(ticketId);
+        setStep(6); // Go to Success Screen
+        setSubmitting(false);
+      }, 500);
+
     } catch (err) {
+      clearInterval(progressInterval);
+      setSubmitting(false);
+      setSubmitError(err.message || 'Failed to submit ticket. Please check your network connection and try again.');
       console.error("Failed to submit ticket:", err);
     }
   };
@@ -913,6 +951,16 @@ const SubmitTicketWizard = () => {
                   </div>
                 </div>
 
+                {submitError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-800 font-semibold leading-relaxed animate-shake">
+                    <ShieldAlert className="w-5 h-5 text-red-650 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-extrabold text-red-900">Submission Error</p>
+                      <p>{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Consent & Submit Box */}
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mt-6 mb-2">
                   <div className="flex items-start gap-3">
@@ -929,10 +977,10 @@ const SubmitTicketWizard = () => {
                   </div>
                   <button
                     onClick={handleSubmit}
-                    disabled={!termsAgreed}
-                    className={`w-full mt-4 flex justify-center items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all focus:outline-none ${termsAgreed ? 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 cursor-pointer active:scale-98' : 'bg-slate-400 cursor-not-allowed'}`}
+                    disabled={!termsAgreed || submitting}
+                    className={`w-full mt-4 flex justify-center items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all focus:outline-none ${termsAgreed && !submitting ? 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 cursor-pointer active:scale-98' : 'bg-slate-400 cursor-not-allowed'}`}
                   >
-                    Submit Ticket
+                    {submitting ? 'Submitting...' : 'Submit Ticket'}
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -1071,6 +1119,42 @@ const SubmitTicketWizard = () => {
             </div>
           )}
 
+          {/* SUBMISSION LOADING MODAL */}
+          {submitting && (
+            <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-8 items-center text-center animate-scale-up shrink-0 space-y-6">
+                
+                {/* Spinner wheel with icon */}
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-blue-600 animate-spin"></div>
+                  <FileText className="w-5 h-5 text-blue-650" />
+                </div>
+
+                <div className="space-y-2 text-center w-full">
+                  <h4 className="font-heading font-extrabold text-lg text-slate-900">
+                    Submitting Your Ticket...
+                  </h4>
+                  <p className="text-xs text-slate-455 font-semibold leading-relaxed max-w-xs mx-auto">
+                    Please wait while we transmit your concern to Barangay San Vicente's server.
+                  </p>
+                </div>
+
+                {/* Progress bar container */}
+                <div className="w-full space-y-2.5">
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
+                    <div 
+                      className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${submitProgress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block text-center">
+                    {submitProgressText}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
