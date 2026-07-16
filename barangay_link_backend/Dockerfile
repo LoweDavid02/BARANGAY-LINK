@@ -32,8 +32,18 @@ COPY . /var/www
 # Copy existing application directory permissions
 COPY --chown=www-data:www-data . /var/www
 
+# Create placeholder .env and set permissions
+RUN touch /var/www/.env && chown www-data:www-data /var/www/.env
+
+# Set permissions for storage and cache
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
 # Install Composer dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-reqs
+
+# Ensure permissions after Composer installation
+RUN chown -R www-data:www-data /var/www/vendor /var/www/bootstrap/cache /var/www/storage
 
 # Copy Nginx Configuration
 COPY nginx.conf /etc/nginx/sites-available/default
