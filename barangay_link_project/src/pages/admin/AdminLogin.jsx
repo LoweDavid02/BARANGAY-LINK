@@ -26,11 +26,14 @@ const AdminLogin = () => {
     if (!GOOGLE_CLIENT_ID) return;
     const initGoogle = () => {
       if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleResponse,
-          auto_select: false,
-        });
+        if (!window.google_initialized) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleResponse,
+            auto_select: false,
+          });
+          window.google_initialized = true;
+        }
         if (googleBtnRef.current) {
           window.google.accounts.id.renderButton(googleBtnRef.current, {
             type: 'standard',
