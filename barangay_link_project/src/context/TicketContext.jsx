@@ -3,8 +3,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const TicketContext = createContext();
 
 const getApiBase = () => {
-  if (import.meta.env.VITE_API_BASE) {
-    return import.meta.env.VITE_API_BASE;
+  let base = import.meta.env.VITE_API_BASE;
+  if (base) {
+    if (!base.endsWith('/api') && !base.endsWith('/api/')) {
+      base = base.replace(/\/$/, '') + '/api';
+    }
+    return base;
   }
   const hostname = window.location.hostname;
   if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
