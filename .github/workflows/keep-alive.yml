@@ -1,0 +1,34 @@
+name: Keep Services Alive
+
+on:
+  schedule:
+    # Run every 3 days at midnight UTC
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Backend (wakes Render + triggers DB connection)
+        run: |
+          echo "Pinging backend to keep services alive..."
+          curl -f -s -o /dev/null -w "Backend Status: %{http_code}\n" \
+            https://barangay-link-backend.onrender.com/api/health || \
+          curl -f -s -o /dev/null -w "Backend Status (fallback): %{http_code}\n" \
+            https://barangay-link-backend.onrender.com/api/tickets
+          
+      - name: Ping Supabase Directly
+        run: |
+          echo "Pinging Supabase database..."
+          curl -f -s \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "https://kmrqovodmqvmifefgskw.supabase.co/rest/v1/users?select=id&limit=1" || \
+          echo "Direct DB ping failed (might need to set SUPABASE_ANON_KEY secret)"
+      
+      - name: Report Success
+        run: |
+          echo "✅ Keep-alive ping completed at $(date)"
+          echo "Next scheduled run: 3 days from now"

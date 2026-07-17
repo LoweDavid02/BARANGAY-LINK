@@ -8,6 +8,26 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\DashboardController;
 
+// Health check endpoint (no auth required, lightweight)
+Route::get('/health', function () {
+    try {
+        // Quick DB check
+        \DB::select('SELECT 1');
+        return response()->json([
+            'status' => 'ok',
+            'database' => 'connected',
+            'timestamp' => now()->toISOString(),
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'database' => 'disconnected',
+            'error' => config('app.debug') ? $e->getMessage() : 'Database error',
+            'timestamp' => now()->toISOString(),
+        ], 503);
+    }
+});
+
 // Public routes
 Route::middleware('throttle:login')->post('/auth/login', [AuthController::class, 'login']);
 Route::middleware('throttle:login')->post('/auth/google', [AuthController::class, 'googleLogin']);

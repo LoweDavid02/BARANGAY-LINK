@@ -100,7 +100,9 @@ return [
             'options' => extension_loaded('pdo_pgsql') ? array_filter([
                 \PDO::ATTR_TIMEOUT => env('DB_CONNECT_TIMEOUT', 10),
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ]) : [],
+            ]) + [
+                \PDO::ATTR_PERSISTENT => false,
+                ] : [],
         ],
 
         'sqlsrv' => [
