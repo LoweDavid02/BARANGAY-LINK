@@ -196,9 +196,8 @@ const AdminLogin = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   <label className="text-xs font-bold text-slate-700 tracking-wide">
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-[9px] text-red-500 font-bold">(these fields are required)</span>
                 </div>
                 <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 focus-within:border-blue-650 focus-within:bg-white transition-all shadow-sm">
                   <Mail className="w-4.5 h-4.5 text-slate-400 shrink-0 mr-3" />
@@ -217,9 +216,8 @@ const AdminLogin = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   <label className="text-xs font-bold text-slate-700 tracking-wide">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-[9px] text-red-500 font-bold">(these fields are required)</span>
                 </div>
                 <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 focus-within:border-blue-650 focus-within:bg-white transition-all shadow-sm">
                   <Lock className="w-4.5 h-4.5 text-slate-400 shrink-0 mr-3" />
