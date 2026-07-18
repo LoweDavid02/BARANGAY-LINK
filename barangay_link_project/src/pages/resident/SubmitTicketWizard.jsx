@@ -1054,7 +1054,7 @@ const SubmitTicketWizard = () => {
                     <div className="w-32 flex flex-col items-center justify-center shrink-0 border border-slate-205 rounded-xl px-4 py-5 bg-white gap-4 mx-auto sm:mx-0 shadow-sm">
                       <div className="w-full aspect-square relative flex items-center justify-center">
                         <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(successTicketId)}`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${window.location.origin}/track?id=${successTicketId}`)}`}
                           alt="Ticket QR Code"
                           className="w-full h-full object-contain"
                         />
@@ -1066,7 +1066,7 @@ const SubmitTicketWizard = () => {
                       <button
                         onClick={async () => {
                           try {
-                            const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(successTicketId)}`);
+                            const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${window.location.origin}/track?id=${successTicketId}`)}`);
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const link = document.createElement('a');
