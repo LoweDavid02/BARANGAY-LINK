@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTickets } from '../../context/TicketContext';
-import { useSearchParams } from 'react-router-dom';
 import jsQR from 'jsqr';
 import { 
   Search, 
@@ -24,7 +23,6 @@ import {
 
 const TrackTicket = () => {
   const { tickets, trackingId, setTrackingId, updateTicketStatus, trackByContact } = useTickets();
-  const [searchParams] = useSearchParams();
   const [searchVal, setSearchVal] = useState(trackingId || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [showDetails, setShowDetails] = useState(false);
@@ -42,13 +40,16 @@ const TrackTicket = () => {
 
   // Handle QR code scan - automatically set tracking ID from URL parameter
   useEffect(() => {
-    const idFromUrl = searchParams.get('id');
+    const urlParams = new URLSearchParams(window.location.search);
+    const idFromUrl = urlParams.get('id');
     if (idFromUrl) {
       setTrackingId(idFromUrl);
       setSearchVal(idFromUrl);
       setShowDetails(true); // Automatically show details when coming from QR code
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [searchParams, setTrackingId]);
+  }, [setTrackingId]);
 
   useEffect(() => {
     if (trackingId) {
