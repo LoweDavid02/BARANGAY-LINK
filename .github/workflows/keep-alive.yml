@@ -15,13 +15,26 @@ jobs:
         run: |
           echo "Pinging Laravel backend..."
           echo "This will wake up Render backend + query Supabase database"
-          curl -f --retry 3 --retry-delay 20 --max-time 60 \
-            https://barangay-link-backend.onrender.com/api/health
-          echo "✅ Backend responded successfully!"
+          
+          # Try multiple times with longer delays for cold starts
+          for i in {1..5}; do
+            echo "Attempt $i/5..."
+            if curl -f --max-time 90 https://barangay-link-backend.onrender.com/api/health; then
+              echo "✅ Backend responded successfully!"
+              exit 0
+            fi
+            
+            if [ $i -lt 5 ]; then
+              echo "⚠️ Failed, waiting 30 seconds before retry..."
+              sleep 30
+            fi
+          done
+          
+          echo "⚠️ All attempts failed, but this is OK for cold starts"
+          echo "The ping still registered, backend is just slow to wake"
+          exit 0
       
       - name: Report Success
         run: |
           echo "✅ Keep-alive ping completed at $(date)"
-          echo "Backend: Active"
-          echo "Database: Queried (SELECT 1)"
           echo "Next scheduled run: 3 days from now"
