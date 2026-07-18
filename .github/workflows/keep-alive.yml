@@ -11,24 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Ping Backend (wakes Render + triggers DB connection)
+      - name: Ping Laravel Backend (with retry for cold start)
         run: |
-          echo "Pinging backend to keep services alive..."
-          curl -f -s -o /dev/null -w "Backend Status: %{http_code}\n" \
-            https://barangay-link-backend.onrender.com/api/health || \
-          curl -f -s -o /dev/null -w "Backend Status (fallback): %{http_code}\n" \
-            https://barangay-link-backend.onrender.com/api/tickets
-          
-      - name: Ping Supabase Directly
-        run: |
-          echo "Pinging Supabase database..."
-          curl -f -s \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "https://kmrqovodmqvmifefgskw.supabase.co/rest/v1/users?select=id&limit=1" || \
-          echo "Direct DB ping failed (might need to set SUPABASE_ANON_KEY secret)"
+          echo "Pinging Laravel backend..."
+          echo "This will wake up Render backend + query Supabase database"
+          curl -f --retry 3 --retry-delay 20 --max-time 60 \
+            https://barangay-link-backend.onrender.com/api/health
+          echo "✅ Backend responded successfully!"
       
       - name: Report Success
         run: |
           echo "✅ Keep-alive ping completed at $(date)"
+          echo "Backend: Active"
+          echo "Database: Queried (SELECT 1)"
           echo "Next scheduled run: 3 days from now"
