@@ -185,6 +185,13 @@ export const TicketProvider = ({ children }) => {
 
   const [currentRoute, setCurrentRoute] = useState(() => {
     if (typeof window !== 'undefined') {
+      // Check for QR code scan with tracking ID parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackingIdParam = urlParams.get('id');
+      if (trackingIdParam) {
+        return 'resident-track';
+      }
+      
       if (window.location.pathname === '/login') {
         return 'admin-login';
       }
@@ -198,7 +205,14 @@ export const TicketProvider = ({ children }) => {
     return 'resident-home';
   });
 
-  const [trackingId, setTrackingId] = useState('');
+  const [trackingId, setTrackingId] = useState(() => {
+    // Check for tracking ID from QR code scan on initial load
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id') || '';
+    }
+    return '';
+  });
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [currentUserType, setCurrentUserType] = useState('resident');

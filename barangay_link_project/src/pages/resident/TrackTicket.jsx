@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 const TrackTicket = () => {
-  const { tickets, trackingId, setTrackingId, updateTicketStatus, trackByContact } = useTickets();
+  const { tickets, trackingId, setTrackingId, updateTicketStatus, trackByContact, setCurrentRoute } = useTickets();
   const [searchVal, setSearchVal] = useState(trackingId || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [showDetails, setShowDetails] = useState(false);
@@ -43,13 +43,16 @@ const TrackTicket = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const idFromUrl = urlParams.get('id');
     if (idFromUrl) {
+      // Set the route to track page to ensure we're on the right page
+      setCurrentRoute('resident-track');
+      // Set the tracking ID which will trigger ticket fetch
       setTrackingId(idFromUrl);
       setSearchVal(idFromUrl);
       setShowDetails(true); // Automatically show details when coming from QR code
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Clean up URL but keep the route
+      window.history.replaceState({}, document.title, '/');
     }
-  }, [setTrackingId]);
+  }, [setTrackingId, setCurrentRoute]);
 
   useEffect(() => {
     if (trackingId) {
