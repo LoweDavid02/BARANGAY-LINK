@@ -15,10 +15,8 @@ class Personnel extends Model
     protected static function booted()
     {
         $incrementVersion = function () {
-            if (!\Illuminate\Support\Facades\Cache::has('personnel_version')) {
+            if (!\Illuminate\Support\Facades\Cache::increment('personnel_version')) {
                 \Illuminate\Support\Facades\Cache::forever('personnel_version', 2);
-            } else {
-                \Illuminate\Support\Facades\Cache::increment('personnel_version');
             }
         };
 

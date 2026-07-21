@@ -15,10 +15,8 @@ class AuditLog extends Model
     protected static function booted()
     {
         $incrementVersion = function () {
-            if (!\Illuminate\Support\Facades\Cache::has('audit_logs_version')) {
+            if (!\Illuminate\Support\Facades\Cache::increment('audit_logs_version')) {
                 \Illuminate\Support\Facades\Cache::forever('audit_logs_version', 2);
-            } else {
-                \Illuminate\Support\Facades\Cache::increment('audit_logs_version');
             }
         };
 

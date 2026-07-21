@@ -19,10 +19,8 @@ class Ticket extends Model
     protected static function booted()
     {
         $incrementVersion = function () {
-            if (!\Illuminate\Support\Facades\Cache::has('tickets_version')) {
+            if (!\Illuminate\Support\Facades\Cache::increment('tickets_version')) {
                 \Illuminate\Support\Facades\Cache::forever('tickets_version', 2);
-            } else {
-                \Illuminate\Support\Facades\Cache::increment('tickets_version');
             }
         };
 
