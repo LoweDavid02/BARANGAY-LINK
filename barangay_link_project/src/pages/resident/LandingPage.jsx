@@ -19,7 +19,11 @@ import {
   MapPin,
   CheckCircle2,
   X,
-  Lock
+  Lock,
+  TreePine,
+  GraduationCap,
+  HeartPulse,
+  HeartHandshake
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -35,6 +39,7 @@ const LandingPage = () => {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [pendingRouteParams, setPendingRouteParams] = useState(null);
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
 
   // FAQ Data matching the design
   const faqData = [
@@ -181,10 +186,10 @@ const LandingPage = () => {
             <h2 className="font-heading font-extrabold text-3xl text-slate-900 tracking-tight">What can we help you with today?</h2>
           </div>
           <button 
-            onClick={() => handleStartSubmit('Service Request', 'Infrastructure')}
+            onClick={() => setShowCategoriesModal(true)}
             className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer shrink-0"
           >
-            See All Services
+            View All Categories
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -623,6 +628,139 @@ const LandingPage = () => {
               >
                 Continue
               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 9. CATEGORIES MODAL */}
+      {showCategoriesModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 py-8">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col animate-scale-up max-h-full">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex flex-col gap-3 shrink-0">
+              <div>
+                <button 
+                  onClick={() => setShowCategoriesModal(false)}
+                  className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <h3 className="font-heading font-extrabold text-slate-950 text-base">Select a category</h3>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto">
+              <div className="flex flex-col gap-3">
+                
+                {/* Infrastructure */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Infrastructure'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Wrench className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Infrastructure</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Roads & Lights</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Report potholes, damaged light poles, drainage blockages, or street obstructions.</p>
+                </div>
+
+                {/* Sanitation */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Sanitation'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Trash2 className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Sanitation</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Waste & Cleanup</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Request garbage collection, report illegal dumping, or request street cleanup.</p>
+                </div>
+
+                {/* Public Safety */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Public Safety'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Public Safety</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Security & Hazards</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Report standard peace and order concerns, emergency street hazards, or security issues.</p>
+                </div>
+
+                {/* Administrative */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Administrative Services'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Administrative</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Permit & Certs</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Request administrative documents, clearances, residency permits, or certificates.</p>
+                </div>
+
+                {/* Environment */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Environment'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <TreePine className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Environment</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Parks/Trees</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Report overgrown trees/parks, request tree planting, or request maintenance of public spaces.</p>
+                </div>
+
+                {/* Education */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Education'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Education</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Schools & Education</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Ask regarding scholarships, school programs, or other educational issues and inquiries.</p>
+                </div>
+
+                {/* Health Care */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Health Care'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <HeartPulse className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Health Care</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Clinics & Vaccinations</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Get default health information, check vaccination schedule, etc. for local health center.</p>
+                </div>
+
+                {/* Social Services */}
+                <div 
+                  onClick={() => { setShowCategoriesModal(false); handleStartSubmit('Service Request', 'Social Services'); }}
+                  className="bg-white border border-slate-200 p-4 rounded-2xl flex flex-col gap-1 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <HeartHandshake className="w-3.5 h-3.5 text-blue-600" />
+                    <h5 className="font-extrabold text-blue-600 text-[10px] uppercase tracking-wider">Social Services</h5>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm mt-0.5">Benefits & Support</h4>
+                  <p className="text-[10px] text-slate-500 font-medium leading-snug">Apply for financial assistance, health benefits, or youth development grants.</p>
+                </div>
+
+              </div>
             </div>
 
           </div>

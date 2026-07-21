@@ -1,5 +1,6 @@
 import React from 'react';
 import { Landmark } from 'lucide-react';
+import logo from '../assets/Blinked.png';
 
 const PortalPreloader = ({ message = "Loading portal..." }) => {
   return (
@@ -7,8 +8,8 @@ const PortalPreloader = ({ message = "Loading portal..." }) => {
       
       {/* Animated Logo */}
       <div className="relative">
-        <div className="w-20 h-20 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-sm animate-pulse">
-          <Landmark className="w-10 h-10 text-white" />
+        <div className="w-32 h-32 flex items-center justify-center animate-pulse p-2">
+          <img src={logo} alt="Barangay Link Logo" className="w-full h-full object-contain" />
         </div>
         {/* Outer rotating ring */}
         <div className="absolute -inset-3 rounded-3xl border-2 border-transparent border-t-blue-400 border-r-blue-400/30 animate-spin"></div>

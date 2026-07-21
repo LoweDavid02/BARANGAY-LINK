@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTickets } from '../context/TicketContext';
 import { Shield, MapPin, Send, HelpCircle, User, LogIn, X, Users, Layers, Activity, Lock, Mail, Phone, Eye } from 'lucide-react';
+import logo from '../assets/Blinked.png';
 
 const ResidentLayout = ({ children }) => {
   const { 
@@ -39,8 +40,8 @@ const ResidentLayout = ({ children }) => {
             onClick={() => setCurrentRoute('resident-home')} 
             className="flex items-center gap-3 cursor-pointer group w-1/3 justify-start"
           >
-            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-md shadow-violet-200 group-hover:scale-105 transition-transform duration-200">
-              <Shield className="w-5 h-5 fill-white/10" />
+            <div className="w-14 h-14 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <img src={logo} alt="B-LINK Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="font-heading font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-violet-600 transition-colors">B-LINK</span>
@@ -102,8 +103,8 @@ const ResidentLayout = ({ children }) => {
             {/* Branding Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white shadow-md">
-                  <Shield className="w-4 h-4" />
+                <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                  <img src={logo} alt="B-LINK Logo" className="w-full h-full object-contain" />
                 </div>
                 <span className="font-heading font-extrabold text-lg text-white">B-LINK</span>
               </div>

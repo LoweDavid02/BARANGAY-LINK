@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTickets } from '../../context/TicketContext';
 import { 
   Check, 
@@ -19,16 +19,22 @@ import {
 } from 'lucide-react';
 
 const AssignmentCenter = () => {
-  const { tickets, personnel, assignPersonnel, updateTicketStatus, refreshData } = useTickets();
+  const { tickets, personnel, assignPersonnel, updateTicketStatus, refreshData, globalSearchQuery } = useTickets();
   
   // Use real personnel from context
   const personnelList = personnel || [];
 
   // State
   const [activeStatusFilter, setActiveStatusFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(globalSearchQuery || '');
   const [currentPage, setCurrentPage] = useState(1);
   
+  useEffect(() => {
+    if (globalSearchQuery !== undefined) {
+      setSearchQuery(globalSearchQuery);
+    }
+  }, [globalSearchQuery]);
+
   // Modal flow states
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [activeModal, setActiveModal] = useState(null); // 'details' | 'assign' | 'assign-success' | 'status' | 'status-success'
@@ -39,6 +45,7 @@ const AssignmentCenter = () => {
   const [tempStatus, setTempStatus] = useState('');
   const [tempPriority, setTempPriority] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
+  const [assignProgress, setAssignProgress] = useState(0);
 
   const handleOpenDetails = (ticket) => {
     setSelectedTicketId(ticket.id);
@@ -58,10 +65,22 @@ const AssignmentCenter = () => {
   // 2. Confirm Assignment Action
   const handleConfirmAssignment = async () => {
     if (!selectedTicketId) return;
+    setActiveModal('assign-generating');
+    setAssignProgress(10);
+    const interval = setInterval(() => {
+      setAssignProgress(prev => prev >= 90 ? 90 : prev + 15);
+    }, 500);
+
     const assigneeName = tempAssignee === '' ? null : tempAssignee;
     await assignPersonnel(selectedTicketId, assigneeName);
+    
+    clearInterval(interval);
+    setAssignProgress(100);
+    
     await refreshData();
-    setActiveModal('assign-success');
+    setTimeout(() => {
+      setActiveModal('assign-success');
+    }, 400);
   };
 
   // 3. Confirm Status Update Action
@@ -595,6 +614,35 @@ const AssignmentCenter = () => {
                 </button>
               </div>
 
+            </div>
+          )}
+
+          {/* ASSIGNMENT GENERATING MODAL */}
+          {activeModal === 'assign-generating' && (
+            <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-8 items-center text-center animate-scale-up shrink-0 space-y-6">
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-4 border-slate-100 border-t-[#0B3A9B] animate-spin"></div>
+                <Check className="w-5 h-5 text-[#0B3A9B]" />
+              </div>
+              <div className="space-y-2 text-center w-full">
+                <h4 className="font-heading font-extrabold text-lg text-slate-900">
+                  Assigning Personnel...
+                </h4>
+                <p className="text-xs text-slate-400 font-semibold leading-relaxed max-w-xs mx-auto">
+                  Please wait while we confirm the assignment and notify the resident.
+                </p>
+              </div>
+              <div className="w-full space-y-2.5">
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
+                  <div 
+                    className="bg-[#0B3A9B] h-full rounded-full transition-all duration-300"
+                    style={{ width: `${assignProgress}%` }}
+                  ></div>
+                </div>
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block text-center">
+                  UPDATING DATABASE
+                </span>
+              </div>
             </div>
           )}
 

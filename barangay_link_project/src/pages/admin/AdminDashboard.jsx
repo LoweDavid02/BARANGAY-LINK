@@ -1,345 +1,322 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTickets } from '../../context/TicketContext';
 import { 
-  CheckCircle, 
-  Clock, 
-  RefreshCw,
-  ChevronDown,
+  CheckCircle,
   Inbox,
-  AlertTriangle,
-  Activity,
-  Shield,
+  Users,
   ArrowRight,
-  MapPin,
-  Calendar
+  ChevronDown
 } from 'lucide-react';
 import DashboardMap from '../../components/DashboardMap';
 
 const AdminDashboard = () => {
-  const { tickets, setCurrentRoute } = useTickets();
-  const [refreshing, setRefreshing] = useState(false);
+  const { tickets, personnel, setCurrentRoute, currentUser } = useTickets();
 
-  // Dynamic calculations to match KPI numbers from the screenshot
-  const totalTicketsCount = tickets.length;
-  const pendingCount = tickets.filter(t => t.status === 'Submitted' || t.status === 'Needs Attention').length;
-  const inProgressCount = tickets.filter(t => t.status === 'In Progress').length;
+  // Dynamic calculations
+  const openTicketsCount = tickets.filter(t => t.status !== 'Completed' && t.status !== 'Resolved' && t.status !== 'Closed' && t.status !== 'Cancelled').length;
+  const activePersonnelCount = personnel ? personnel.length : 34;
   
-  // Format numbers to two digits (e.g. 02)
-  const formatNum = (num) => num.toString().padStart(2, '0');
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const resolvedThisMonthCount = tickets.filter(t => {
+    if (t.status === 'Resolved' || t.status === 'Completed' || t.status === 'Closed') {
+      const d = new Date(t.updated_at || t.dateSubmitted);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    }
+    return false;
+  }).length;
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+  // Date Formatting for Welcome Text
+  const today = new Date();
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formattedDate = today.toLocaleDateString(undefined, dateOptions);
+  
+  const getGreeting = () => {
+    const hour = today.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   };
 
-  // Mock bar chart data to match the screenshot dynamics
-  const barData = [
-    { day: '01 May', value: 40, active: false },
-    { day: '', value: 62, active: false },
-    { day: '', value: 50, active: false },
-    { day: '07 May', value: 85, active: true }, // highlighted dark blue
-    { day: '', value: 72, active: false },
-    { day: '', value: 52, active: false },
-    { day: '14 May', value: 58, active: false },
-    { day: '', value: 92, active: true }, // highlighted dark blue
-    { day: '', value: 80, active: false },
-    { day: '21 May', value: 54, active: false },
-    { day: '', value: 36, active: false },
-    { day: '28 May', value: 18, active: false },
-  ];
+  const userName = currentUser?.name?.split(' ')[0] || 'Juan';
+
+  // Time-ago helper
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const now = new Date();
+    const past = new Date(dateStr);
+    const diffMs = now - past;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    return `${diffDays}d ago`;
+  };
+
+  // Status pill styling
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'Submitted':
+      case 'Needs Attention':
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      case 'Assigned':
+      case 'In Progress':
+        return 'bg-blue-50 text-blue-700 border border-blue-200';
+      case 'Resolved':
+      case 'Completed':
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
+      default:
+        return 'bg-amber-50 text-amber-700 border border-amber-200';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    if (status === 'Submitted' || status === 'Needs Attention') return 'New';
+    if (status === 'Assigned') return 'In review';
+    return status;
+  };
+
+  // Get newest tickets (any status) for the list
+  const recentTickets = [...tickets]
+    .sort((a, b) => new Date(b.created_at || b.dateSubmitted) - new Date(a.created_at || a.dateSubmitted))
+    .slice(0, 6);
 
   return (
-    <div className="space-y-4 text-left">
+    <div className="space-y-6 text-left font-sans">
       
-      {/* Header Panel Action Bar */}
-      <div className="flex justify-end items-center">
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-2 px-4 py-2 bg-[#0B3A9B] hover:bg-[#093082] text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh Data
-        </button>
+      {/* 1. WELCOME HEADER */}
+      <div className="space-y-1">
+        <h2 className="font-heading font-extrabold text-2xl tracking-tight text-slate-900">
+          {getGreeting()}, {userName}
+        </h2>
+        <p className="text-sm text-slate-500 font-medium">
+          {formattedDate} — here's what's happening across the barangay today.
+        </p>
       </div>
 
-      {/* 1. FOUR KPI CARDS (MATCHING THE SCREENSHOT) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. KPI CARDS (3 Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         
-        {/* KPI 1: Total Tickets */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 block">Total Tickets</span>
-            <div className="flex items-end gap-1.5">
-              <h3 className="font-heading font-extrabold text-3xl text-slate-900 leading-none">
-                {formatNum(totalTicketsCount)}
-              </h3>
-              <span className="text-[10px] text-slate-400 font-bold mb-0.5">+10% total</span>
-            </div>
+        {/* KPI 1: Open Tickets */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#FFF3E0] flex items-center justify-center shrink-0">
+            <Inbox className="w-5 h-5 text-[#E8913A]" />
           </div>
-          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-            <CheckCircle className="w-4.5 h-4.5 text-emerald-650" />
+          <div>
+            <h3 className="font-heading font-extrabold text-2xl text-slate-900 leading-none">
+              {openTicketsCount}
+            </h3>
+            <span className="text-[12px] font-medium text-slate-400 block mt-0.5">Open tickets</span>
           </div>
         </div>
 
-        {/* KPI 2: Pending Tickets */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 block">Pending Tickets</span>
-            <div className="flex items-end gap-1.5">
-              <h3 className="font-heading font-extrabold text-3xl text-slate-900 leading-none">
-                {formatNum(pendingCount)}
-              </h3>
-              <span className="text-[10px] text-slate-400 font-bold mb-0.5">Needs attention</span>
-            </div>
+        {/* KPI 2: Active Personnel */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#EBF3FF] flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5 text-[#0B2545]" />
           </div>
-          <div className="w-8 h-8 rounded-full bg-orange-100/80 flex items-center justify-center text-orange-600 shrink-0">
-            <Clock className="w-4.5 h-4.5 text-orange-600" />
+          <div>
+            <h3 className="font-heading font-extrabold text-2xl text-slate-900 leading-none">
+              {activePersonnelCount}
+            </h3>
+            <span className="text-[12px] font-medium text-slate-400 block mt-0.5">Active personnel</span>
           </div>
         </div>
 
-        {/* KPI 3: In Progress */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 block">In Progress</span>
-            <div className="flex items-end gap-1.5">
-              <h3 className="font-heading font-extrabold text-3xl text-slate-900 leading-none">
-                {formatNum(inProgressCount)}
-              </h3>
-              <span className="text-[10px] text-slate-400 font-bold mb-0.5">Active Now</span>
-            </div>
+        {/* KPI 3: Resolved This Month */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#E8F5E9] flex items-center justify-center shrink-0">
+            <CheckCircle className="w-5 h-5 text-[#2E7D32]" />
           </div>
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-            <RefreshCw className="w-4.5 h-4.5 text-blue-600" />
+          <div>
+            <h3 className="font-heading font-extrabold text-2xl text-slate-900 leading-none">
+              {resolvedThisMonthCount}
+            </h3>
+            <span className="text-[12px] font-medium text-slate-400 block mt-0.5">Resolved this month</span>
           </div>
         </div>
-
-        {/* KPI 4: Active */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 block">Active</span>
-            <div className="flex items-end gap-1.5">
-              <h3 className="font-heading font-extrabold text-3xl text-slate-900 leading-none">
-                {formatNum(totalTicketsCount)}
-              </h3>
-              <span className="text-[10px] text-slate-400 font-bold mb-0.5">Registered</span>
-            </div>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-            <CheckCircle className="w-4.5 h-4.5 text-emerald-650" />
-          </div>
-        </div>
-
       </div>
 
-      {/* 2. DUAL COLUMN LAYOUT CHART & CATEGORIES */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* 3. TICKET VOLUME DYNAMICS + CATEGORY BREAKDOWN */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
-        {/* Left Card: Ticket Volume Dynamics Bar Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-          
-          {/* Chart Header */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
+        {/* Left: Ticket Volume Dynamics Bar Chart */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+          <div className="flex items-start justify-between mb-6">
+            <div>
               <h4 className="font-heading font-bold text-base text-slate-900">
                 Ticket Volume Dynamics
               </h4>
-              <p className="text-xs text-slate-400 font-semibold">
+              <p className="text-[12px] text-slate-400 font-medium mt-0.5">
                 Submission trends over the last 30 days
               </p>
             </div>
-            
-            <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+            <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer">
               Last 30 Days
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
           </div>
 
-          {/* Bar Chart Columns */}
-          <div className="pt-8 pb-4">
-            <div className="flex items-end justify-between h-48 w-full px-2">
-              {barData.map((bar, idx) => (
-                <div key={idx} className="flex-1 flex flex-col justify-end items-center h-full group">
-                  
-                  {/* Tooltip on Hover */}
-                  <div className="relative w-full flex justify-center">
-                    <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow pointer-events-none z-10">
-                      {Math.round(bar.value / 5)}
-                    </span>
-                  </div>
-
-                  {/* Vertical Column Bar */}
-                  <div 
-                    style={{ height: `${bar.value}%` }}
-                    className={`w-[60%] sm:w-[50%] rounded-t-sm transition-all duration-500 cursor-pointer
-                      ${bar.active 
-                        ? 'bg-[#1E293B] hover:bg-[#0F172A]' 
-                        : 'bg-[#93C5FD] hover:bg-[#60A5FA] opacity-80'}`}
-                  ></div>
+          {/* Bar Chart */}
+          <div className="flex-1 flex items-end justify-between gap-1.5 min-h-[180px] pb-4">
+            {[
+              { value: 35, active: false },
+              { value: 55, active: false },
+              { value: 45, active: false },
+              { value: 80, active: true },
+              { value: 65, active: true },
+              { value: 50, active: false },
+              { value: 42, active: false },
+              { value: 90, active: true },
+              { value: 70, active: false },
+              { value: 55, active: false },
+              { value: 32, active: false },
+              { value: 15, active: false },
+            ].map((bar, idx) => (
+              <div key={idx} className="flex-1 flex flex-col justify-end items-center h-full group cursor-pointer">
+                <div className="relative w-full flex justify-center">
+                  <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow pointer-events-none z-10">
+                    {Math.round(bar.value / 5)}
+                  </span>
                 </div>
-              ))}
-            </div>
-
-            {/* X-Axis labels matching screenshot layout */}
-            <div className="flex justify-between px-2 pt-2 border-t border-slate-100 text-[10px] font-bold text-slate-450 tracking-wide uppercase">
-              <span className="w-12 text-center">01 May</span>
-              <span className="w-12 text-center">07 May</span>
-              <span className="w-12 text-center">14 May</span>
-              <span className="w-12 text-center">21 May</span>
-              <span className="w-12 text-center">28 May</span>
-            </div>
+                <div 
+                  style={{ height: `${bar.value}%` }}
+                  className={`w-[70%] rounded-t-sm transition-all duration-500
+                    ${bar.active 
+                      ? 'bg-[#1E293B] hover:bg-[#0F172A]' 
+                      : 'bg-[#93C5FD] hover:bg-[#60A5FA] opacity-70'}`}
+                />
+              </div>
+            ))}
           </div>
 
+          {/* X-Axis */}
+          <div className="flex justify-between px-1 pt-3 border-t border-slate-100 text-[10px] font-semibold text-slate-400 tracking-wide">
+            <span>01 May</span>
+            <span>07 May</span>
+            <span>14 May</span>
+            <span>21 May</span>
+            <span>28 May</span>
+          </div>
         </div>
 
-        {/* Right Card: Category Breakdown */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-          
-          {/* Card Header */}
-          <div className="space-y-1 pb-4">
-            <h4 className="font-heading font-bold text-base text-slate-900">
-              Category Breakdown
-            </h4>
+        {/* Right: Category Breakdown */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
+          <h4 className="font-heading font-bold text-base text-slate-900 mb-6">
+            Category Breakdown
+          </h4>
+
+          <div className="space-y-6 flex-1 flex flex-col justify-center">
+            {/* Complaints */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500 font-medium">Complaints</span>
+                <span className="text-slate-800 font-bold">42%</span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-[#1E5AE6] h-full rounded-full transition-all duration-1000" style={{ width: '42%' }} />
+              </div>
+            </div>
+
+            {/* Service Requests */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500 font-medium">Service Requests</span>
+                <span className="text-slate-800 font-bold">28%</span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-[#C27852] h-full rounded-full transition-all duration-1000" style={{ width: '28%' }} />
+              </div>
+            </div>
+
+            {/* General Concerns */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500 font-medium">General Concerns</span>
+                <span className="text-slate-800 font-bold">15%</span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="bg-slate-400 h-full rounded-full transition-all duration-1000" style={{ width: '15%' }} />
+              </div>
+            </div>
           </div>
-
-          {/* Progress Bars Stack */}
-          <div className="space-y-5 flex-1 flex flex-col justify-center">
-            
-            {/* Complaints (42%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-500 font-semibold">Complaints</span>
-                <span className="text-slate-800 font-extrabold">42%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-[#1E5AE6] h-full rounded-full transition-all duration-1000" 
-                  style={{ width: '42%' }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Service Requests (28%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-500 font-semibold">Service Requests</span>
-                <span className="text-slate-800 font-extrabold">28%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-[#C27852] h-full rounded-full transition-all duration-1000" 
-                  style={{ width: '28%' }}
-                ></div>
-              </div>
-            </div>
-
-            {/* General Concerns (15%) */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-500 font-semibold">General Concerns</span>
-                <span className="text-slate-800 font-extrabold">15%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-slate-400 h-full rounded-full transition-all duration-1000" 
-                  style={{ width: '15%' }}
-                ></div>
-              </div>
-            </div>
-
-          </div>
-
         </div>
-
       </div>
 
-      {/* 3. TICKET HEATMAP MAP */}
-      <DashboardMap tickets={tickets} />
+      {/* 4. BARANGAY SERVICE MAP */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 pt-5 pb-3">
+          <h4 className="font-heading font-bold text-base text-slate-900">
+            Barangay Service Map
+          </h4>
+          <p className="text-[12px] text-slate-400 font-medium mt-0.5">
+            San Vicente, Apalit, Pampanga
+          </p>
+        </div>
+        <DashboardMap tickets={tickets} />
+      </div>
 
-      {/* 3. NEW TICKETS SECTION */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
+      {/* 4. NEW TICKETS — Card-style list rows (matching the design) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         
         {/* Section Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
+        <div className="px-6 pt-5 pb-4 flex items-start justify-between">
+          <div>
             <h4 className="font-heading font-bold text-base text-slate-900">
               New Tickets
             </h4>
-            <p className="text-xs text-slate-400 font-semibold">
+            <p className="text-[12px] text-slate-400 font-medium mt-0.5">
               Recently submitted tickets awaiting review and assignment
             </p>
           </div>
           <button
             onClick={() => setCurrentRoute('admin-assign')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#0B3A9B] hover:bg-[#093082] text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#0B2545] hover:bg-[#081d36] text-white text-xs font-bold rounded-full transition-all cursor-pointer shrink-0"
           >
             View All Tickets
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Ticket ID</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Subject</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden md:table-cell">Category</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Location</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Priority</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Date</th>
-                <th className="py-3 px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {tickets
-                .filter(t => t.status === 'Submitted' || t.status === 'Needs Attention')
-                .slice(0, 5)
-                .map((ticket) => {
-                  const priorityStyle = ticket.priority === 'Urgent' ? 'bg-red-50 text-red-600 border-red-100'
-                    : ticket.priority === 'High' ? 'bg-orange-50 text-orange-600 border-orange-100'
-                    : ticket.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100'
-                    : 'bg-slate-50 text-slate-500 border-slate-100';
+        {/* Ticket Rows */}
+        <div className="divide-y divide-slate-100">
+          {recentTickets.map((ticket) => (
+            <div key={ticket.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50/50 transition-colors cursor-pointer group">
+              
+              {/* Ticket ID */}
+              <span className="text-[12px] font-bold text-slate-400 w-14 shrink-0">
+                #{ticket.id?.toString().replace(/\D/g, '').slice(-4) || '0000'}
+              </span>
+              
+              {/* Subject & Requester */}
+              <div className="flex-1 min-w-0">
+                <h5 className="text-sm font-bold text-slate-800 truncate leading-snug">
+                  {ticket.subject}
+                </h5>
+                <p className="text-[12px] text-slate-400 font-medium truncate mt-0.5">
+                  {ticket.resident?.name || 'Resident'} · {ticket.location?.address || ticket.category || 'San Vicente'}
+                </p>
+              </div>
 
-                  return (
-                    <tr key={ticket.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3.5 px-3 font-black text-slate-800 uppercase">{ticket.id}</td>
-                      <td className="py-3.5 px-3 font-semibold text-slate-700 max-w-[200px] truncate">{ticket.subject}</td>
-                      <td className="py-3.5 px-3 font-semibold text-slate-500 hidden md:table-cell">{ticket.category}</td>
-                      <td className="py-3.5 px-3 hidden lg:table-cell">
-                        <span className="flex items-center gap-1 text-slate-500 font-semibold">
-                          <MapPin className="w-3 h-3 text-red-400 shrink-0" />
-                          <span className="truncate max-w-[150px]">{ticket.location?.address || 'N/A'}</span>
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-lg border text-[9px] font-extrabold uppercase tracking-wider ${priorityStyle}`}>
-                          {ticket.priority}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 hidden sm:table-cell">
-                        <span className="flex items-center gap-1 text-slate-400 font-semibold">
-                          <Calendar className="w-3 h-3 shrink-0" />
-                          {new Date(ticket.dateSubmitted).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className="px-2 py-0.5 rounded-lg border text-[9px] font-extrabold uppercase tracking-wider bg-yellow-50 text-yellow-600 border-yellow-100">
-                          {ticket.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              {tickets.filter(t => t.status === 'Submitted' || t.status === 'Needs Attention').length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-10 text-center text-slate-400 font-semibold">
-                    No new tickets at this time.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              {/* Status Pill */}
+              <span className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${getStatusStyle(ticket.status)}`}>
+                {getStatusLabel(ticket.status)}
+              </span>
+
+              {/* Timestamp */}
+              <span className="text-[12px] text-slate-400 font-medium w-16 text-right shrink-0">
+                {timeAgo(ticket.created_at || ticket.dateSubmitted)}
+              </span>
+            </div>
+          ))}
+
+          {recentTickets.length === 0 && (
+            <div className="px-6 py-12 text-center text-slate-400 font-medium text-sm">
+              No tickets at this time.
+            </div>
+          )}
         </div>
       </div>
 

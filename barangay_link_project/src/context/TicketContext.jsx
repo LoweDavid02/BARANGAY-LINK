@@ -182,6 +182,7 @@ export const TicketProvider = ({ children }) => {
   const [personnel, setPersonnel] = useState(initialPersonnel);
   const [logs, setLogs] = useState(initialLogs);
   const [notifications, setNotifications] = useState([]);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
   const [currentRoute, setCurrentRoute] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -780,6 +781,8 @@ export const TicketProvider = ({ children }) => {
       googleLogin,
       logout,
       trackByContact,
+      globalSearchQuery,
+      setGlobalSearchQuery,
       refreshData: fetchData
     }}>
       {children}
