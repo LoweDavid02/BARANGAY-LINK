@@ -23,15 +23,13 @@ class AuditLogController extends Controller
      */
     public function export()
     {
-        $logs = AuditLog::orderBy('timestamp', 'desc')->get();
-        
         $csvHeader = ['ID', 'Ticket ID', 'Action', 'Details', 'Timestamp', 'Performed By', 'Log Type'];
         
-        $callback = function() use ($logs, $csvHeader) {
+        $callback = function() use ($csvHeader) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $csvHeader);
             
-            foreach ($logs as $log) {
+            foreach (AuditLog::orderBy('timestamp', 'desc')->cursor() as $log) {
                 fputcsv($file, [
                     $log->id,
                     $log->ticket_id,
