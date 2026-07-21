@@ -107,10 +107,6 @@ const AdminLogin = () => {
     }
   };
 
-  if (isLoading) {
-    return <PortalPreloader message={`Signing into ${portal} Portal...`} />;
-  }
-
   const isFormFilled = portal !== 'Select' && email.trim() !== '' && password.trim() !== '';
 
   return (
@@ -304,6 +300,8 @@ const AdminLogin = () => {
 
       </div>
 
+      {/* Preloader Overlay on Sign In */}
+      {isLoading && <PortalPreloader message={`Signing into ${portal !== 'Select' ? portal : 'Admin'} Portal...`} />}
     </div>
   );
 };

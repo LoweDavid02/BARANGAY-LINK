@@ -159,10 +159,6 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
     }
   };
 
-  if (isLoggingOut) {
-    return <PortalPreloader message="Signing out of the portal..." />;
-  }
-
   // Initials for avatar
   const userInitials = (currentUser?.name || 'JC').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const userName = currentUser?.name || 'Juan Dela Cruz';
@@ -647,6 +643,9 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
         </main>
 
       </div>
+
+      {/* Preloader Overlay on Sign Out */}
+      {isLoggingOut && <PortalPreloader message="Signing out of the portal..." />}
     </div>
   );
 };
