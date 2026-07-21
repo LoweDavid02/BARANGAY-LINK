@@ -10,6 +10,9 @@ fi
 echo "Running database migrations..."
 php artisan migrate --force || echo "Migration failed! Please check your DATABASE_URL environment variable."
 
+# Ensure Admin & Personnel default accounts are seeded in production
+php artisan db:seed --force || echo "Database seeding completed or skipped."
+
 # Start Reverb server in the background
 php artisan reverb:start --host=127.0.0.1 --port=8080 &
 

@@ -25,89 +25,117 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed Admin
-        $admin = User::create([
-            'name' => 'Admin Officer',
-            'email' => 'admin@example.com',
-            'phone' => '+63 900 123 4567',
-            'password' => Hash::make('admin123'),
-            'user_type' => 'admin',
-            'role' => 'Barangay Admin',
-            'avatar_url' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
-            'email_notifications_enabled' => true,
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin Officer',
+                'phone' => '+63 900 123 4567',
+                'password' => Hash::make('admin123'),
+                'user_type' => 'admin',
+                'role' => 'Barangay Admin',
+                'avatar_url' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+                'email_notifications_enabled' => true,
+            ]
+        );
+        $admin->password = Hash::make('admin123');
+        $admin->save();
 
         // 2. Seed Personnel Users & Personnel Profiles
-        $p1User = User::create([
-            'name' => 'Marcus Sterling',
-            'email' => 'm.sterling@barangaylink.gov',
-            'phone' => '+63 917 777 8888',
-            'password' => Hash::make('personnel123'),
-            'user_type' => 'personnel',
-            'role' => 'Lead Field Engineer',
-            'avatar_url' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-            'email_notifications_enabled' => true,
-        ]);
-        $p1 = Personnel::create([
-            'user_id' => $p1User->id,
-            'status' => 'Busy',
-            'rating' => 4.8,
-            'detailed_role' => 'Lead Field Engineer',
-            'active_tickets_count' => 2,
-        ]);
+        $p1User = User::firstOrCreate(
+            ['email' => 'm.sterling@barangaylink.gov'],
+            [
+                'name' => 'Marcus Sterling',
+                'phone' => '+63 917 777 8888',
+                'password' => Hash::make('personnel123'),
+                'user_type' => 'personnel',
+                'role' => 'Lead Field Engineer',
+                'avatar_url' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+                'email_notifications_enabled' => true,
+            ]
+        );
+        $p1User->password = Hash::make('personnel123');
+        $p1User->save();
+        $p1 = Personnel::firstOrCreate(
+            ['user_id' => $p1User->id],
+            [
+                'status' => 'Busy',
+                'rating' => 4.8,
+                'detailed_role' => 'Lead Field Engineer',
+                'active_tickets_count' => 2,
+            ]
+        );
 
-        $p2User = User::create([
-            'name' => 'Elena Santos',
-            'email' => 'e.santos@barangaylink.gov',
-            'phone' => '+63 920 888 9999',
-            'password' => Hash::make('personnel123'),
-            'user_type' => 'personnel',
-            'role' => 'Desk Relations Officer',
-            'avatar_url' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-            'email_notifications_enabled' => true,
-        ]);
-        $p2 = Personnel::create([
-            'user_id' => $p2User->id,
-            'status' => 'Available',
-            'rating' => 4.9,
-            'detailed_role' => 'Desk Relations Officer',
-            'active_tickets_count' => 1,
-        ]);
+        $p2User = User::firstOrCreate(
+            ['email' => 'e.santos@barangaylink.gov'],
+            [
+                'name' => 'Elena Santos',
+                'phone' => '+63 920 888 9999',
+                'password' => Hash::make('personnel123'),
+                'user_type' => 'personnel',
+                'role' => 'Desk Relations Officer',
+                'avatar_url' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+                'email_notifications_enabled' => true,
+            ]
+        );
+        $p2User->password = Hash::make('personnel123');
+        $p2User->save();
+        $p2 = Personnel::firstOrCreate(
+            ['user_id' => $p2User->id],
+            [
+                'status' => 'Available',
+                'rating' => 4.9,
+                'detailed_role' => 'Desk Relations Officer',
+                'active_tickets_count' => 1,
+            ]
+        );
 
-        $p3User = User::create([
-            'name' => 'Ramon Valenzuela',
-            'email' => 'r.valenzuela@barangaylink.gov',
-            'phone' => '+63 909 333 4444',
-            'password' => Hash::make('personnel123'),
-            'user_type' => 'personnel',
-            'role' => 'Public Safety Officer',
-            'avatar_url' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-            'email_notifications_enabled' => true,
-        ]);
-        $p3 = Personnel::create([
-            'user_id' => $p3User->id,
-            'status' => 'Available',
-            'rating' => 4.7,
-            'detailed_role' => 'Public Safety Officer',
-            'active_tickets_count' => 0,
-        ]);
+        $p3User = User::firstOrCreate(
+            ['email' => 'r.valenzuela@barangaylink.gov'],
+            [
+                'name' => 'Ramon Valenzuela',
+                'phone' => '+63 909 333 4444',
+                'password' => Hash::make('personnel123'),
+                'user_type' => 'personnel',
+                'role' => 'Public Safety Officer',
+                'avatar_url' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+                'email_notifications_enabled' => true,
+            ]
+        );
+        $p3User->password = Hash::make('personnel123');
+        $p3User->save();
+        $p3 = Personnel::firstOrCreate(
+            ['user_id' => $p3User->id],
+            [
+                'status' => 'Available',
+                'rating' => 4.7,
+                'detailed_role' => 'Public Safety Officer',
+                'active_tickets_count' => 0,
+            ]
+        );
 
-        $p4User = User::create([
-            'name' => 'Clara Gatchalian',
-            'email' => 'c.gatchalian@barangaylink.gov',
-            'phone' => '+63 945 555 6666',
-            'password' => Hash::make('personnel123'),
-            'user_type' => 'personnel',
-            'role' => 'Sanitation Coordinator',
-            'avatar_url' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-            'email_notifications_enabled' => true,
-        ]);
-        $p4 = Personnel::create([
-            'user_id' => $p4User->id,
-            'status' => 'Available',
-            'rating' => 4.6,
-            'detailed_role' => 'Sanitation Coordinator',
-            'active_tickets_count' => 0,
-        ]);
+        $p4User = User::firstOrCreate(
+            ['email' => 'c.gatchalian@barangaylink.gov'],
+            [
+                'name' => 'Clara Gatchalian',
+                'phone' => '+63 945 555 6666',
+                'password' => Hash::make('personnel123'),
+                'user_type' => 'personnel',
+                'role' => 'Sanitation Coordinator',
+                'avatar_url' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+                'email_notifications_enabled' => true,
+            ]
+        );
+        $p4User->password = Hash::make('personnel123');
+        $p4User->save();
+        $p4 = Personnel::firstOrCreate(
+            ['user_id' => $p4User->id],
+            [
+                'status' => 'Available',
+                'rating' => 4.6,
+                'detailed_role' => 'Sanitation Coordinator',
+                'active_tickets_count' => 0,
+            ]
+        );
 
         // 3. Seed Residents
         $res1 = Resident::create([
