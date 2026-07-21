@@ -135,18 +135,20 @@ class TicketController extends Controller
                 }
 
                 // Send email to resident (use first admin's email as sender)
-                try {
-                    $adminSender = $this->getAdmins()->first();
-                    $senderEmail = $adminSender ? $adminSender->email : config('mail.from.address');
-                    $senderName = 'Barangay Link - San Vicente';
-                    $recipientEmail = $resident->email;
-                    $subject = "Ticket #{$ticketId} Submitted Successfully";
-                    Mail::raw("Hello {$resident->name},\n\nYour ticket '{$ticket->subject}' has been successfully submitted to Barangay San Vicente, Apalit, Pampanga.\n\nYour Tracking ID: {$ticketId}\n\nYou can track the live status of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
-                        $message->from($senderEmail, $senderName)->to($recipientEmail)->subject($subject);
-                    });
-                } catch (\Throwable $e) {
-                    \Log::error("Failed to send submission email to {$resident->email}: " . $e->getMessage());
-                }
+                DB::afterCommit(function () use ($resident, $ticketId, $request, $ticket) {
+                    try {
+                        $adminSender = $this->getAdmins()->first();
+                        $senderEmail = $adminSender ? $adminSender->email : config('mail.from.address');
+                        $senderName = 'Barangay Link - San Vicente';
+                        $recipientEmail = $resident->email;
+                        $subject = "Ticket #{$ticketId} Submitted Successfully";
+                        Mail::raw("Hello {$resident->name},\n\nYour ticket '{$ticket->subject}' has been successfully submitted to Barangay San Vicente, Apalit, Pampanga.\n\nYour Tracking ID: {$ticketId}\n\nYou can track the live status of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
+                            $message->from($senderEmail, $senderName)->to($recipientEmail)->subject($subject);
+                        });
+                    } catch (\Throwable $e) {
+                        \Log::error("Failed to send submission email to {$resident->email}: " . $e->getMessage());
+                    }
+                });
 
                 return response()->json([
                     'message' => 'Ticket submitted successfully',
@@ -376,22 +378,24 @@ class TicketController extends Controller
                     ]);
 
                     // Send email to resident on assignment
-                    try {
-                        $resident = $ticket->resident;
-                        if ($resident && $resident->email) {
-                            $senderEmail = config('mail.from.address');
-                            $senderName = 'Barangay Link - San Vicente';
-                            $recipientEmail = $resident->email;
-                            $subject = "Ticket #{$ticket->id} Assigned";
-                            Mail::raw("Hello {$resident->name},\n\nYour ticket #{$ticket->id} has been assigned to a field officer and is now being processed.\n\nAssigned Personnel: {$newPersonnel->user->name}\nNew Status: Assigned\n\nYou can track the live progress of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
-                                $message->from($senderEmail, $senderName)
-                                        ->to($recipientEmail)
-                                        ->subject($subject);
-                            });
+                    DB::afterCommit(function () use ($ticket, $newPersonnel) {
+                        try {
+                            $resident = $ticket->resident;
+                            if ($resident && $resident->email) {
+                                $senderEmail = config('mail.from.address');
+                                $senderName = 'Barangay Link - San Vicente';
+                                $recipientEmail = $resident->email;
+                                $subject = "Ticket #{$ticket->id} Assigned";
+                                Mail::raw("Hello {$resident->name},\n\nYour ticket #{$ticket->id} has been assigned to a field officer and is now being processed.\n\nAssigned Personnel: {$newPersonnel->user->name}\nNew Status: Assigned\n\nYou can track the live progress of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName) {
+                                    $message->from($senderEmail, $senderName)
+                                            ->to($recipientEmail)
+                                            ->subject($subject);
+                                });
+                            }
+                        } catch (\Throwable $e) {
+                            \Log::error("Failed to send assignment email: " . $e->getMessage());
                         }
-                    } catch (\Throwable $e) {
-                        \Log::error("Failed to send assignment email: " . $e->getMessage());
-                    }
+                    });
                 } else {
                     // Personnel not found or has no associated user
                     \Log::error("Personnel #{$newPersonnelId} not found or has no associated user");
@@ -556,25 +560,27 @@ class TicketController extends Controller
             }
 
             // Send email to resident on status update (use logged-in user's email as sender)
-            try {
-                $resident = $ticket->resident;
-                if ($resident && $resident->email && $request->has('status')) {
-                    $user = Auth::user();
-                    $senderEmail = $user ? $user->email : config('mail.from.address');
-                    $senderName = 'Barangay Link - San Vicente';
-                    $recipientEmail = $resident->email;
-                    $subject = "Ticket #{$ticket->id} Status Updated";
-                    $details = $request->comment ? $request->comment : 'Status changed to ' . $request->status;
-                    Mail::raw("Hello {$resident->name},\n\nYour ticket #{$ticket->id} has been updated by the Barangay Team.\n\nNew Status: {$ticket->status}\nDetails: {$details}\n\nYou can track the live progress of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName, $user) {
-                        $message->from(config('mail.from.address'), config('mail.from.name'))
-                                ->replyTo($senderEmail, $user ? $user->name : $senderName)
-                                ->to($recipientEmail)
-                                ->subject($subject);
-                    });
+            DB::afterCommit(function () use ($ticket, $request) {
+                try {
+                    $resident = $ticket->resident;
+                    if ($resident && $resident->email && $request->has('status')) {
+                        $user = Auth::user();
+                        $senderEmail = $user ? $user->email : config('mail.from.address');
+                        $senderName = 'Barangay Link - San Vicente';
+                        $recipientEmail = $resident->email;
+                        $subject = "Ticket #{$ticket->id} Status Updated";
+                        $details = $request->comment ? $request->comment : 'Status changed to ' . $request->status;
+                        Mail::raw("Hello {$resident->name},\n\nYour ticket #{$ticket->id} has been updated by the Barangay Team.\n\nNew Status: {$ticket->status}\nDetails: {$details}\n\nYou can track the live progress of your ticket anytime on our Resident Portal.\n\nThank you,\nBarangay Link Support Team", function ($message) use ($recipientEmail, $subject, $senderEmail, $senderName, $user) {
+                            $message->from(config('mail.from.address'), config('mail.from.name'))
+                                    ->replyTo($senderEmail, $user ? $user->name : $senderName)
+                                    ->to($recipientEmail)
+                                    ->subject($subject);
+                        });
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error("Failed to send status update email: " . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                \Log::error("Failed to send status update email: " . $e->getMessage());
-            }
+            });
 
             // Dispatch Real-time Event
             event(new \App\Events\TicketUpdated($ticket));
