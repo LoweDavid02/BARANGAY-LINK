@@ -19,6 +19,22 @@ use Illuminate\Support\Facades\Mail;
 class TicketController extends Controller
 {
     /**
+     * Cache admin users for the lifetime of this request to avoid repeated queries.
+     */
+    private $cachedAdmins = null;
+
+    /**
+     * Get all admin users, cached per-request.
+     */
+    private function getAdmins()
+    {
+        if ($this->cachedAdmins === null) {
+            $this->cachedAdmins = User::where('user_type', 'admin')->get();
+        }
+        return $this->cachedAdmins;
+    }
+
+    /**
      * Resident: Submit a new ticket/concern.
      * 
      * Error handling:
@@ -107,7 +123,7 @@ class TicketController extends Controller
                 ]);
 
                 // Notify Admins
-                $admins = User::where('user_type', 'admin')->get();
+                $admins = $this->getAdmins();
                 foreach ($admins as $admin) {
                     Notification::create([
                         'user_id' => $admin->id,
@@ -120,7 +136,7 @@ class TicketController extends Controller
 
                 // Send email to resident (use first admin's email as sender)
                 try {
-                    $adminSender = User::where('user_type', 'admin')->first();
+                    $adminSender = $this->getAdmins()->first();
                     $senderEmail = $adminSender ? $adminSender->email : config('mail.from.address');
                     $senderName = 'Barangay Link - San Vicente';
                     $recipientEmail = $resident->email;
@@ -526,7 +542,7 @@ class TicketController extends Controller
                 $notifyUser = null;
                 if (Auth::user() && Auth::user()->user_type === 'personnel') {
                     // Notify admins
-                    $admins = User::where('user_type', 'admin')->get();
+                    $admins = $this->getAdmins();
                     foreach ($admins as $admin) {
                         Notification::create([
                             'user_id' => $admin->id,
@@ -661,7 +677,7 @@ class TicketController extends Controller
                 $personnel->save();
 
                 // Notify Admin
-                $admins = User::where('user_type', 'admin')->get();
+                $admins = $this->getAdmins();
                 foreach ($admins as $admin) {
                     Notification::create([
                         'user_id' => $admin->id,
@@ -762,7 +778,7 @@ class TicketController extends Controller
             ]);
 
             // Notify Admins
-            $admins = User::where('user_type', 'admin')->get();
+            $admins = $this->getAdmins();
             foreach ($admins as $admin) {
                 Notification::create([
                     'user_id' => $admin->id,
