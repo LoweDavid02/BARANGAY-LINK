@@ -18,11 +18,12 @@ import {
   Lock,
   Camera,
   Plus,
-  HelpCircle
+  HelpCircle,
+  Loader2
 } from 'lucide-react';
 
 const TrackTicket = () => {
-  const { tickets, trackingId, setTrackingId, updateTicketStatus, trackByContact, setCurrentRoute } = useTickets();
+  const { tickets, trackingId, setTrackingId, updateTicketStatus, trackByContact, setCurrentRoute, isTrackLoading } = useTickets();
   const [searchVal, setSearchVal] = useState(trackingId || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [showDetails, setShowDetails] = useState(false);
@@ -400,6 +401,17 @@ const TrackTicket = () => {
             </div>
           )}
 
+        </div>
+      ) : isTrackLoading ? (
+        /* Searching / Loading State */
+        <div className="bg-white border border-slate-200 rounded-2xl p-12 shadow-sm text-center max-w-md mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow animate-spin">
+            <Loader2 className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-heading font-extrabold text-lg text-slate-900">Locating Ticket...</h3>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">Fetching details for reference code <span className="font-bold text-slate-700">"{trackingId}"</span> from Barangay records...</p>
+          </div>
         </div>
       ) : trackingId ? (
         /* Ticket not found State */

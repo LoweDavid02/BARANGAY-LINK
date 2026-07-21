@@ -12,7 +12,7 @@ const getApiBase = () => {
   }
   const hostname = window.location.hostname;
   if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    if (hostname.includes('barangay-link-project')) {
+    if (hostname.includes('onrender.com') || hostname.includes('barangay')) {
       return 'https://barangay-link-backend.onrender.com/api';
     }
   }
@@ -397,10 +397,16 @@ export const TicketProvider = ({ children }) => {
   }, []);
 
   // Fetch tracked ticket details when tracking ID is loaded
+  const [isTrackLoading, setIsTrackLoading] = useState(false);
+
   useEffect(() => {
     const fetchTrackedTicket = async () => {
       const cleanId = trackingId.replace('#', '').trim();
-      if (!cleanId) return;
+      if (!cleanId) {
+        setIsTrackLoading(false);
+        return;
+      }
+      setIsTrackLoading(true);
       try {
         const res = await fetch(`${API_BASE}/tickets/track/${cleanId}`, { headers: getHeaders() });
         if (res.ok) {
@@ -413,6 +419,8 @@ export const TicketProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("Error fetching tracked ticket details:", err);
+      } finally {
+        setIsTrackLoading(false);
       }
     };
     fetchTrackedTicket();
@@ -445,7 +453,8 @@ export const TicketProvider = ({ children }) => {
       const nextRoute = data.user.user_type === 'admin' ? 'admin-dashboard' : 'personnel-dashboard';
       setCurrentRoute(nextRoute);
 
-      await fetchData(data.user.user_type);
+      // Trigger background data fetch without blocking login navigation
+      fetchData(data.user.user_type);
       return true;
     } catch (err) {
       console.error("Login failed:", err);
@@ -479,7 +488,8 @@ export const TicketProvider = ({ children }) => {
       const nextRoute = data.user.user_type === 'admin' ? 'admin-dashboard' : 'personnel-dashboard';
       setCurrentRoute(nextRoute);
 
-      await fetchData(data.user.user_type);
+      // Trigger background data fetch without blocking login navigation
+      fetchData(data.user.user_type);
       return true;
     } catch (err) {
       console.error("Google login failed:", err);
@@ -543,8 +553,42 @@ export const TicketProvider = ({ children }) => {
       }
 
       const data = await res.json();
+      const newTicketId = data.ticket_id;
+
+      // Construct mapped ticket object immediately so UI tracking has it available without waiting for async refetch
+      const newTicketObj = mapTicket({
+        id: newTicketId,
+        category: ticketData.category,
+        department: ticketData.department,
+        subject: ticketData.subject,
+        description: ticketData.description,
+        status: 'Submitted',
+        priority: ticketData.priority || 'Medium',
+        progress: 10,
+        location: {
+          latitude: ticketData.location.lat,
+          longitude: ticketData.location.lng,
+          address: ticketData.location.address,
+        },
+        resident: {
+          name: ticketData.submitter.name,
+          email: ticketData.submitter.email,
+          phone: ticketData.submitter.phone,
+        },
+        created_at: new Date().toISOString(),
+        history: [{
+          action_date: new Date().toISOString(),
+          action: 'Ticket Submitted',
+          performed_by: ticketData.submitter.name + ' (Resident)',
+        }]
+      });
+
+      if (newTicketObj) {
+        setTickets(prev => [newTicketObj, ...prev.filter(t => t.id !== newTicketObj.id)]);
+      }
+
       fetchData();
-      return data.ticket_id;
+      return newTicketId;
     } catch (err) {
       console.error("Error submitting ticket:", err);
       throw err;
@@ -781,6 +825,7 @@ export const TicketProvider = ({ children }) => {
       googleLogin,
       logout,
       trackByContact,
+      isTrackLoading,
       globalSearchQuery,
       setGlobalSearchQuery,
       refreshData: fetchData

@@ -131,7 +131,16 @@ const AuditLog = () => {
   const handleExportCSV = async () => {
     try {
       const token = localStorage.getItem('blink_access_token');
-      const res = await fetch(`http://localhost:8000/api/admin/audit-logs/export`, {
+      const getApiBase = () => {
+        let base = import.meta.env.VITE_API_BASE;
+        if (base) return base.endsWith('/api') ? base : base.replace(/\/$/, '') + '/api';
+        if (window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+          return 'https://barangay-link-backend.onrender.com/api';
+        }
+        return 'http://localhost:8000/api';
+      };
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/admin/audit-logs/export`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
