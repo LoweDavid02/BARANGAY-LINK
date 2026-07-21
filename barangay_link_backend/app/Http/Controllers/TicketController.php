@@ -220,7 +220,7 @@ class TicketController extends Controller
      */
     public function verifyResolution($id, Request $request)
     {
-        $ticket = Ticket::find($id);
+        $ticket = Ticket::with(['resident'])->find($id);
 
         if (!$ticket) {
             return response()->json(['message' => 'Ticket not found'], 404);
@@ -302,7 +302,7 @@ class TicketController extends Controller
             'personnel_id' => 'nullable|exists:personnels,id',
         ]);
 
-        $ticket = Ticket::find($id);
+        $ticket = Ticket::with(['resident', 'location'])->find($id);
 
         if (!$ticket) {
             return response()->json(['message' => 'Ticket not found'], 404);
@@ -463,7 +463,7 @@ class TicketController extends Controller
             'evidence_photo' => 'nullable|string',
         ]);
 
-        $ticket = Ticket::find($id);
+        $ticket = Ticket::with(['resident'])->find($id);
 
         if (!$ticket) {
             return response()->json(['message' => 'Ticket not found'], 404);
