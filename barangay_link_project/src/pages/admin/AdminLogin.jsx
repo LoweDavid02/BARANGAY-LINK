@@ -1,18 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTickets } from '../../context/TicketContext';
-import { Shield, Mail, Lock, Landmark, ChevronDown } from 'lucide-react';
+import { Shield, Mail, Lock, Landmark, ChevronDown, UserPlus, X, CheckCircle2, AlertCircle, Building, BadgeCheck, User, ArrowRight, Check } from 'lucide-react';
 import PortalPreloader from '../../components/PortalPreloader';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 const AdminLogin = () => {
-  const { login, googleLogin, setCurrentRoute } = useTickets();
+  const { login, googleLogin, setCurrentRoute, addPersonnel } = useTickets();
   const [portal, setPortal] = useState('Select');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const googleBtnRef = useRef(null);
+
+  // Account Provisioning Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [newAccount, setNewAccount] = useState({
+    accountType: 'Select',
+    fullName: '',
+    employeeId: '',
+    email: '',
+    department: 'Administrative Services',
+    password: '',
+    confirmPassword: '',
+  });
+  const [modalError, setModalError] = useState('');
+  const [modalSuccess, setModalSuccess] = useState('');
+  const [isSubmittingModal, setIsSubmittingModal] = useState(false);
 
   const portalRef = useRef(portal);
 
@@ -107,7 +123,79 @@ const AdminLogin = () => {
     }
   };
 
+  const handleCreateAccountSubmit = async (e) => {
+    e.preventDefault();
+    setModalError('');
+    setModalSuccess('');
+
+    if (newAccount.accountType === 'Select') {
+      setModalError('Please select a valid Account Designation / Role.');
+      return;
+    }
+    if (!newAccount.fullName.trim()) {
+      setModalError('Full Legal Name is required.');
+      return;
+    }
+    if (!newAccount.employeeId.trim()) {
+      setModalError('Corporate / Employee ID Number is required.');
+      return;
+    }
+    if (!newAccount.email.trim() || !newAccount.email.includes('@')) {
+      setModalError('A valid official work email address is required.');
+      return;
+    }
+    if (!newAccount.password || newAccount.password.length < 8) {
+      setModalError('Password must be at least 8 characters long for corporate security compliance.');
+      return;
+    }
+    if (newAccount.password !== newAccount.confirmPassword) {
+      setModalError('Password and Confirm Password do not match.');
+      return;
+    }
+
+    setIsSubmittingModal(true);
+    try {
+      if (addPersonnel) {
+        await addPersonnel({
+          name: newAccount.fullName.trim(),
+          email: newAccount.email.trim(),
+          role: newAccount.accountType === 'Admin' ? 'System Administrator' : 'Field Operations Specialist',
+          department: newAccount.department,
+          employeeId: newAccount.employeeId.trim(),
+        });
+      }
+      setPortal(newAccount.accountType);
+      setEmail(newAccount.email.trim());
+      setPassword(newAccount.password);
+
+      setIsCreateModalOpen(false);
+      setIsSuccessModalOpen(true);
+      setModalSuccess('');
+      setNewAccount({
+        accountType: 'Select',
+        fullName: '',
+        employeeId: '',
+        email: '',
+        department: 'Administrative Services',
+        password: '',
+        confirmPassword: '',
+      });
+    } catch (err) {
+      setModalError(err.message || 'Failed to provision account credentials. Email or ID may already exist.');
+    } finally {
+      setIsSubmittingModal(false);
+    }
+  };
+
   const isFormFilled = portal !== 'Select' && email.trim() !== '' && password.trim() !== '';
+
+  const isCreateFormFilled = 
+    newAccount.accountType !== 'Select' &&
+    newAccount.fullName.trim() !== '' &&
+    newAccount.employeeId.trim() !== '' &&
+    newAccount.email.trim() !== '' &&
+    newAccount.password.trim() !== '' &&
+    newAccount.confirmPassword.trim() !== '';
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center antialiased font-sans p-6 md:p-12">
@@ -237,10 +325,11 @@ const AdminLogin = () => {
               {/* Sign In Button */}
               <button
                 type="submit"
-                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-extrabold text-white transition-all shadow-md cursor-pointer mt-2 ${
+                disabled={!isFormFilled || isLoading}
+                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-extrabold transition-all mt-2 ${
                   isFormFilled 
-                    ? 'bg-[#1E5AE6] hover:bg-[#1546B8]' 
-                    : 'bg-[#6B7280] hover:bg-[#5A606C]'
+                    ? 'bg-[#1E5AE6] hover:bg-[#1546B8] text-white shadow-md cursor-pointer active:scale-[0.98]' 
+                    : 'bg-slate-300 text-slate-400 cursor-not-allowed border border-slate-300/50 shadow-none'
                 }`}
               >
                 Sign-in
@@ -276,12 +365,28 @@ const AdminLogin = () => {
               )}
 
             {/* Disclaimer Notice */}
-            <div className="pt-6 border-t border-slate-100 text-center space-y-1.5">
+            <div className="pt-6 border-t border-slate-100 text-center space-y-2">
               <span className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest block">
                 🛡️ AUTHORIZED PERSONNEL ONLY
               </span>
               <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">
                 This system is restricted to Blinked City Management personnel.
+              </p>
+              
+              {/* Account Provisioning Trigger */}
+              <p className="text-xs text-slate-500 font-semibold pt-1">
+                Need an admin or personnel account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalError('');
+                    setModalSuccess('');
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer transition-colors focus:outline-none"
+                >
+                  Click here.
+                </button>
               </p>
             </div>
 
@@ -299,6 +404,231 @@ const AdminLogin = () => {
         </div>
 
       </div>
+
+      {/* Account Creation Modal (Matching exact UI/UX design) */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative border border-slate-100">
+            
+            {/* Left Column: Access Management Dark Sidebar */}
+            <div className="w-full md:w-[42%] bg-[#1E293B] p-8 text-white flex flex-col justify-start space-y-6">
+              <div className="w-10 h-10 rounded-xl bg-slate-700/50 flex items-center justify-center text-white">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <div className="space-y-3">
+                <h4 className="font-heading font-extrabold text-2xl text-white tracking-tight leading-snug">
+                  Access Management
+                </h4>
+                <p className="text-xs text-slate-300 font-normal leading-relaxed">
+                  Provision new administrative or field personnel credentials to maintain system integrity.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Create Account Form */}
+            <div className="w-full md:w-[58%] p-8 bg-white flex flex-col justify-between space-y-5">
+              
+              {/* Header & Subtitle */}
+              <div>
+                <div className="space-y-1 pb-3 border-b border-slate-200/80">
+                  <h3 className="font-heading font-extrabold text-xl text-slate-900 tracking-tight">
+                    Create Account
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Fill in the details below to register a new user.
+                  </p>
+                </div>
+
+                <form onSubmit={handleCreateAccountSubmit} className="mt-4 space-y-4">
+                  
+                  {/* Select Account Type */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                      Select Account Type <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={newAccount.accountType}
+                        onChange={(e) => setNewAccount({ ...newAccount, accountType: e.target.value })}
+                        className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none cursor-pointer"
+                        required
+                      >
+                        <option value="Select">Choose an Account</option>
+                        <option value="Admin">Administrator Account</option>
+                        <option value="Personnel">Barangay Personnel Account</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* 2-Column: Full Name & Employee/Admin ID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newAccount.fullName}
+                        onChange={(e) => setNewAccount({ ...newAccount, fullName: e.target.value })}
+                        placeholder="Enter your Name"
+                        className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                        Employee / Admin ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newAccount.employeeId}
+                        onChange={(e) => setNewAccount({ ...newAccount, employeeId: e.target.value })}
+                        placeholder="ID-2024-XXXX"
+                        className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Address */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={newAccount.email}
+                      onChange={(e) => setNewAccount({ ...newAccount, email: e.target.value })}
+                      placeholder="Enter your Email Address"
+                      className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-blue-600 focus:bg-white transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* Password & Confirm Password (2-Column Grid) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                        Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={newAccount.password}
+                        onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
+                        placeholder="Enter your password"
+                        className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-800 tracking-wide block">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={newAccount.confirmPassword}
+                        onChange={(e) => setNewAccount({ ...newAccount, confirmPassword: e.target.value })}
+                        placeholder="Confirm your password"
+                        className="w-full bg-[#F1F5F9] border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Status Banners */}
+                  {modalError && (
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{modalError}</span>
+                    </div>
+                  )}
+
+                  {modalSuccess && (
+                    <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                      <span>{modalSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Footer Action Buttons */}
+                  <div className="pt-4 flex items-center justify-end gap-4 border-t border-slate-200/80">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateModalOpen(false)}
+                      className="text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors cursor-pointer px-3 py-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!isCreateFormFilled || isSubmittingModal}
+                      className={`px-5 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                        isCreateFormFilled
+                          ? 'bg-[#1E5AE6] hover:bg-[#1546B8] text-white shadow-md hover:shadow-blue-500/20 active:scale-[0.98] cursor-pointer'
+                          : 'bg-slate-300 text-slate-400 cursor-not-allowed border border-slate-300/50 shadow-none opacity-80'
+                      }`}
+                    >
+                      <span>{isSubmittingModal ? 'Provisioning...' : 'Create Account'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Post-Account Provisioning Success Confirmation Modal */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm md:max-w-md bg-white rounded-2xl shadow-2xl p-7 md:p-8 text-center relative border border-slate-100 flex flex-col items-center space-y-6">
+            
+            {/* Top Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-all cursor-pointer"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Checkmark Badge Graphic */}
+            <div className="w-20 h-20 rounded-full bg-[#DBEAFE]/80 border-4 border-blue-50/60 flex items-center justify-center text-white my-1 shadow-inner">
+              <div className="w-11 h-11 rounded-full bg-[#002B7F] flex items-center justify-center text-white shadow-md">
+                <Check className="w-6 h-6 stroke-[3]" />
+              </div>
+            </div>
+
+            {/* Corporate Standard IAM Content */}
+            <div className="space-y-2">
+              <h3 className="font-heading font-extrabold text-2xl text-slate-900 tracking-tight leading-tight">
+                Identity Provisioned Successfully
+              </h3>
+              <p className="text-xs text-slate-500 font-medium max-w-xs mx-auto leading-relaxed">
+                Your enterprise access profile has been configured. You may now proceed to authenticate with your credentials.
+              </p>
+            </div>
+
+            {/* Primary Action Button */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="w-full py-3.5 rounded-xl bg-[#002B7F] hover:bg-[#002166] text-white text-sm font-extrabold transition-all shadow-md cursor-pointer tracking-wide"
+            >
+              Proceed to Sign-In
+            </button>
+
+          </div>
+        </div>
+      )}
 
       {/* Preloader Overlay on Sign In */}
       {isLoading && <PortalPreloader message={`Signing into ${portal !== 'Select' ? portal : 'Admin'} Portal...`} />}

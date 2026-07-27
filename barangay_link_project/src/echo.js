@@ -43,7 +43,7 @@ const getReverbScheme = () => {
 
 export const echo = new Echo({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY || 'barangaylink_key',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
     wsHost: getReverbHost(),
     wsPort: getReverbPort(),
     wssPort: getReverbPort(),
