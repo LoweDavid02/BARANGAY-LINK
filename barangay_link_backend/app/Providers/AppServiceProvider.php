@@ -27,11 +27,25 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            return Limit::perMinute(5)
+                ->by($request->ip())
+                ->response(function (Request $request, array $headers) {
+                    \Log::warning("Rate limit exceeded on login endpoint from IP: {$request->ip()}");
+                    return response()->json([
+                        'message' => 'Too many login attempts. Please try again in 1 minute.'
+                    ], 429, $headers);
+                });
         });
 
         RateLimiter::for('tickets_store', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            return Limit::perMinute(5)
+                ->by($request->ip())
+                ->response(function (Request $request, array $headers) {
+                    \Log::warning("Rate limit exceeded on ticket creation from IP: {$request->ip()}");
+                    return response()->json([
+                        'message' => 'Ticket submission limit reached. Please wait before submitting another ticket.'
+                    ], 429, $headers);
+                });
         });
     }
 }

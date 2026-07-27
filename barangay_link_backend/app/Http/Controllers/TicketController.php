@@ -50,10 +50,11 @@ class TicketController extends Controller
             'category' => 'required|string|max:100',
             'department' => 'required|string|max:100',
             'subject' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'required|string|max:5000',
+            'priority' => 'nullable|string|in:Low,Medium,High,Urgent',
             'location' => 'required|array',
-            'location.lat' => 'required|numeric',
-            'location.lng' => 'required|numeric',
+            'location.lat' => 'required|numeric|between:-90,90',
+            'location.lng' => 'required|numeric|between:-180,180',
             'location.address' => 'required|string|max:255',
             'submitter' => 'required|array',
             'submitter.name' => 'required|string|max:255',
@@ -62,7 +63,7 @@ class TicketController extends Controller
             'asset_id' => 'nullable|string|max:100',
             'last_inspection' => 'nullable|string|max:100',
             'source' => 'nullable|string|max:100',
-            'evidence_photo' => 'nullable|string|max:255',
+            'evidence_photo' => 'nullable|string|max:2048',
         ]);
 
         try {
@@ -222,10 +223,21 @@ class TicketController extends Controller
      */
     public function verifyResolution($id, Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
         $ticket = Ticket::with(['resident'])->find($id);
 
         if (!$ticket) {
             return response()->json(['message' => 'Ticket not found'], 404);
+        }
+
+        // Verify that the email matches the resident ticket submitter
+        if ($ticket->resident && strtolower(trim($ticket->resident->email)) !== strtolower(trim($request->email))) {
+            return response()->json([
+                'message' => 'Unauthorized. The provided email address does not match the record for this ticket.'
+            ], 403);
         }
 
         return DB::transaction(function () use ($ticket, $request) {

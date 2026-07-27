@@ -29,6 +29,9 @@ class AuthController extends Controller
             ]);
         }
 
+        // Revoke previous tokens to prevent token accumulation
+        $user->tokens()->delete();
+
         // Generate Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -37,10 +40,22 @@ class AuthController extends Controller
             $user->load('personnel');
         }
 
+        // Log login audit
+        try {
+            \App\Models\AuditLog::create([
+                'action' => 'User Login',
+                'user' => $user->name,
+                'details' => "Logged in via password authentication (type: {$user->user_type})",
+                'ip_address' => $request->ip(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning("Failed to record login audit log: " . $e->getMessage());
+        }
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user->makeHidden(['password', 'remember_token', 'google_id'])
         ]);
     }
 
@@ -49,7 +64,21 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            try {
+                \App\Models\AuditLog::create([
+                    'action' => 'User Logout',
+                    'user' => $user->name,
+                    'details' => "Logged out from system",
+                    'ip_address' => $request->ip(),
+                ]);
+            } catch (\Exception $e) {
+                // Ignore audit log failure during logout
+            }
+
+            $user->currentAccessToken()?->delete();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully'
@@ -67,7 +96,7 @@ class AuthController extends Controller
             $user->load('personnel');
         }
 
-        return response()->json($user);
+        return response()->json($user->makeHidden(['password', 'remember_token', 'google_id']));
     }
 
     /**
@@ -80,13 +109,13 @@ class AuthController extends Controller
             'portal' => 'required|string|in:Admin,Personnel',
         ]);
 
-        // Verify the Google ID token with Google's tokeninfo endpoint
+        // Verify the Google ID token with Google's tokeninfo endpoint (SSL verification ENFORCED)
         $client = new \GuzzleHttp\Client();
         try {
             $response = $client->get('https://oauth2.googleapis.com/tokeninfo', [
                 'query' => ['id_token' => $request->credential],
                 'timeout' => 10,
-                'verify' => false,
+                'verify' => true,
             ]);
             $payload = json_decode($response->getBody()->getContents(), true);
         } catch (\Exception $e) {
@@ -104,62 +133,33 @@ class AuthController extends Controller
         $avatar = $payload['picture'] ?? null;
         $portalType = strtolower($request->portal); // 'admin' or 'personnel'
 
-        // Find existing user by email or google_id
+        // Strict authorization: Find pre-registered user by email or google_id
         $user = User::where('email', $email)->orWhere('google_id', $googleId)->first();
 
-        if ($user) {
-            // Update google_id and avatar if not set
-            if (!$user->google_id) {
-                $user->google_id = $googleId;
-            }
-            if ($avatar && !$user->avatar_url) {
-                $user->avatar_url = $avatar;
-            }
-
-            // Allow the user to switch portals seamlessly for testing purposes
-            if ($user->user_type !== $portalType) {
-                $user->user_type = $portalType;
-                $user->role = $portalType === 'admin' ? 'Barangay Admin' : 'Field Personnel';
-                
-                // If switching to personnel, ensure they have a personnel profile
-                if ($portalType === 'personnel') {
-                    \App\Models\Personnel::firstOrCreate(
-                        ['user_id' => $user->id],
-                        [
-                            'status' => 'Available',
-                            'rating' => 5.0,
-                            'detailed_role' => 'Field Personnel',
-                            'active_tickets_count' => 0,
-                        ]
-                    );
-                }
-            }
-            $user->save();
-        } else {
-            // Create new user for the selected portal
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'phone' => '',
-                'password' => null,
-                'user_type' => $portalType,
-                'role' => $portalType === 'admin' ? 'Barangay Admin' : 'Field Personnel',
-                'google_id' => $googleId,
-                'avatar_url' => $avatar,
-                'email_notifications_enabled' => true,
-            ]);
-
-            // If personnel, also create a Personnel profile
-            if ($portalType === 'personnel') {
-                \App\Models\Personnel::create([
-                    'user_id' => $user->id,
-                    'status' => 'Available',
-                    'rating' => 5.0,
-                    'detailed_role' => 'Field Personnel',
-                    'active_tickets_count' => 0,
-                ]);
-            }
+        if (!$user) {
+            return response()->json([
+                'message' => 'No account found matching this Google email address. Please contact your system administrator.'
+            ], 403);
         }
+
+        // Enforce user_type matching: users cannot switch portals/roles arbitrarily
+        if ($user->user_type !== $portalType) {
+            return response()->json([
+                'message' => "Access denied. Your account is registered as '{$user->user_type}', which cannot log in to the {$request->portal} portal."
+            ], 403);
+        }
+
+        // Link google_id and update avatar if not set
+        if (!$user->google_id) {
+            $user->google_id = $googleId;
+        }
+        if ($avatar && !$user->avatar_url) {
+            $user->avatar_url = $avatar;
+        }
+        $user->save();
+
+        // Revoke previous tokens to prevent token accumulation
+        $user->tokens()->delete();
 
         // Generate Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -168,10 +168,22 @@ class AuthController extends Controller
             $user->load('personnel');
         }
 
+        // Log OAuth login audit
+        try {
+            \App\Models\AuditLog::create([
+                'action' => 'Google OAuth Login',
+                'user' => $user->name,
+                'details' => "Authenticated via Google OAuth into {$request->portal} Portal",
+                'ip_address' => $request->ip(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning("Failed to record Google OAuth login audit: " . $e->getMessage());
+        }
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => $user->makeHidden(['password', 'remember_token', 'google_id']),
         ]);
     }
 }

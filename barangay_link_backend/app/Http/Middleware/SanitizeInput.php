@@ -19,8 +19,13 @@ class SanitizeInput
         
         array_walk_recursive($input, function (&$val) {
             if (is_string($val)) {
-                // Strip tags to prevent HTML/JS injection
-                $val = strip_tags($val);
+                // Strip null bytes and control characters
+                $val = str_replace(chr(0), '', $val);
+                // Strip HTML script tags and on* inline event handlers to prevent stored XSS
+                $val = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $val);
+                $val = preg_replace('/on[a-z]+\s*=\s*(["\']).*?\1/i', '', $val);
+                // Trim leading/trailing whitespace
+                $val = trim($val);
             }
         });
         

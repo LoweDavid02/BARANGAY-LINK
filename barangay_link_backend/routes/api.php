@@ -43,30 +43,34 @@ Route::middleware('throttle:api')->group(function () {
 
 // Protected routes
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
-    // Auth profile
+    // Auth profile (accessible to any authenticated user)
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
-    // Admin center
-    Route::get('/admin/metrics', [DashboardController::class, 'metrics']);
-    Route::get('/admin/tickets', [TicketController::class, 'index']);
-    Route::post('/admin/tickets/{id}/assign', [TicketController::class, 'assign']);
-    Route::post('/admin/tickets/{id}/status', [TicketController::class, 'updateStatus']);
-    Route::delete('/admin/tickets/{id}', [TicketController::class, 'destroy']);
-    Route::get('/admin/personnel', [PersonnelController::class, 'index']);
-    Route::post('/admin/personnel', [PersonnelController::class, 'store']);
-    Route::delete('/admin/personnel/{id}', [PersonnelController::class, 'destroy']);
-    Route::get('/admin/audit-logs', [AuditLogController::class, 'index']);
-    Route::get('/admin/audit-logs/export', [AuditLogController::class, 'export']);
+    // Admin Center routes (Strictly Admin only)
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/metrics', [DashboardController::class, 'metrics']);
+        Route::get('/admin/tickets', [TicketController::class, 'index']);
+        Route::post('/admin/tickets/{id}/assign', [TicketController::class, 'assign']);
+        Route::post('/admin/tickets/{id}/status', [TicketController::class, 'updateStatus']);
+        Route::delete('/admin/tickets/{id}', [TicketController::class, 'destroy']);
+        Route::get('/admin/personnel', [PersonnelController::class, 'index']);
+        Route::post('/admin/personnel', [PersonnelController::class, 'store']);
+        Route::delete('/admin/personnel/{id}', [PersonnelController::class, 'destroy']);
+        Route::get('/admin/audit-logs', [AuditLogController::class, 'index']);
+        Route::get('/admin/audit-logs/export', [AuditLogController::class, 'export']);
+    });
 
-    // Personnel center
-    Route::get('/personnel/tickets', [TicketController::class, 'personnelTickets']);
-    Route::post('/personnel/tickets/{id}/start', [TicketController::class, 'startTicket']);
-    Route::post('/personnel/tickets/{id}/update', [TicketController::class, 'updateProgress']);
-    Route::post('/personnel/tickets/{id}/note', [TicketController::class, 'addNote']);
-    Route::post('/personnel/tickets/{id}/escalate', [TicketController::class, 'escalate']);
+    // Personnel Center routes (Personnel and Admin)
+    Route::middleware('role:personnel,admin')->group(function () {
+        Route::get('/personnel/tickets', [TicketController::class, 'personnelTickets']);
+        Route::post('/personnel/tickets/{id}/start', [TicketController::class, 'startTicket']);
+        Route::post('/personnel/tickets/{id}/update', [TicketController::class, 'updateProgress']);
+        Route::post('/personnel/tickets/{id}/note', [TicketController::class, 'addNote']);
+        Route::post('/personnel/tickets/{id}/escalate', [TicketController::class, 'escalate']);
+    });
 
-    // Notifications
+    // Notifications (accessible to all authenticated users)
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/bulk-read', [NotificationController::class, 'bulkRead']);
     Route::post('/notifications/bulk-unread', [NotificationController::class, 'bulkUnread']);

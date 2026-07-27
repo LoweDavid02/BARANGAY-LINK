@@ -26,6 +26,11 @@ class NotificationController extends Controller
      */
     public function bulkRead(Request $request)
     {
+        $request->validate([
+            'ids' => 'sometimes|array|max:100',
+            'ids.*' => 'integer',
+        ]);
+
         $query = Notification::where('user_id', Auth::id());
 
         if ($request->has('ids') && is_array($request->ids)) {
@@ -42,6 +47,11 @@ class NotificationController extends Controller
      */
     public function bulkUnread(Request $request)
     {
+        $request->validate([
+            'ids' => 'sometimes|array|max:100',
+            'ids.*' => 'integer',
+        ]);
+
         $query = Notification::where('user_id', Auth::id());
 
         if ($request->has('ids') && is_array($request->ids)) {

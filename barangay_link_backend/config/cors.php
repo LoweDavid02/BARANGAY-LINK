@@ -17,7 +17,7 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 
     'allowed_origins' => array_filter([
         'http://localhost:5173',
@@ -34,11 +34,18 @@ return [
         '#^https://.*\.onrender\.com$#',
     ],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        'Authorization',
+        'Content-Type',
+        'Accept',
+        'X-Requested-With',
+        'X-Auth-Token',
+        'Origin',
+    ],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 7200,
 
     'supports_credentials' => false,
 

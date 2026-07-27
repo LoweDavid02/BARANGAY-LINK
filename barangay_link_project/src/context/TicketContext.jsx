@@ -219,8 +219,13 @@ export const TicketProvider = ({ children }) => {
   const [currentUserType, setCurrentUserType] = useState('resident');
   
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('blink_current_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('blink_current_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      localStorage.removeItem('blink_current_user');
+      return null;
+    }
   });
 
   // Get Auth Headers helper
