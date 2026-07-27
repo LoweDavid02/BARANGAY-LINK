@@ -76,9 +76,9 @@ class TicketController extends Controller
                     ]
                 );
 
-                // Generate unique ticket ID: TC-2026-XXXXX
+                // Generate unique ticket ID: TC-YYYY-XXXXXXXX (cryptographically secure)
                 do {
-                    $ticketId = 'TC-2026-' . rand(10000, 99999);
+                    $ticketId = 'TC-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(8));
                 } while (Ticket::where('id', $ticketId)->exists());
 
                 // Create Ticket
