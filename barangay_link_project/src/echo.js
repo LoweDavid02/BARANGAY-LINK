@@ -41,12 +41,26 @@ const getReverbScheme = () => {
   return false;
 };
 
+const getReverbKey = () => {
+  const key = import.meta.env.VITE_REVERB_APP_KEY;
+  if (!key || key.includes('YOUR_') || key === 'YOUR_NEW_REVERB_KEY') {
+    return 'barangay_link_local_key';
+  }
+  return key;
+};
+
+const isLocalPlaceholder = () => {
+  const key = import.meta.env.VITE_REVERB_APP_KEY;
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  return isLocal && (!key || key.includes('YOUR_') || key === 'YOUR_NEW_REVERB_KEY');
+};
+
 export const echo = new Echo({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
+    key: getReverbKey(),
     wsHost: getReverbHost(),
     wsPort: getReverbPort(),
     wssPort: getReverbPort(),
     forceTLS: getReverbScheme(),
-    enabledTransports: ['ws', 'wss'],
+    enabledTransports: isLocalPlaceholder() ? [] : ['ws', 'wss'],
 });

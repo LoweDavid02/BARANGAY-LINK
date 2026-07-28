@@ -522,4 +522,4 @@ const SidebarLayout = ({ children, pageTitle = "Dashboard" }) => {
   );
 };
 
-export default SidebarLayout;rLayout;
+export default SidebarLayout;
