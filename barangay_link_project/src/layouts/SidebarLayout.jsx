@@ -168,40 +168,37 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
     const Icon = item.icon;
     const isActive = currentRoute === item.id;
     return (
-      <button
-        key={item.id}
-        onClick={() => {
-          setCurrentRoute(item.id);
-          setMobileMenuOpen(false);
-        }}
-        title={isCollapsed ? item.label : undefined}
-        className={`
-          w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-5'} py-3 text-[13px] font-semibold tracking-tight transition-all duration-200 cursor-pointer text-left relative
-          ${isActive 
-            ? 'bg-[#1a3a5c] text-white' 
-            : 'hover:bg-white/5 text-slate-400 hover:text-slate-200'}
-        `}
-      >
-        {/* Gold active indicator bar */}
-        {isActive && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 bg-[#D4A843] rounded-r-full" />
-        )}
-        <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-        {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-        {!isCollapsed && item.badge > 0 && (
-          <span className="bg-[#D4A843]/20 text-[#D4A843] text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center">
-            {item.badge}
-          </span>
-        )}
-        {isCollapsed && item.badge > 0 && (
-          <span className="absolute top-2 right-2 w-2 h-2 bg-[#D4A843] rounded-full" />
-        )}
-      </button>
+      <div key={item.id} className="px-3">
+        <button
+          onClick={() => {
+            setCurrentRoute(item.id);
+            setMobileMenuOpen(false);
+          }}
+          title={isCollapsed ? item.label : undefined}
+          className={`
+            w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer text-left relative my-0.5
+            ${isActive 
+              ? 'bg-[#334155] text-white font-bold shadow-xs' 
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#263143]'}
+          `}
+        >
+          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+          {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+          {!isCollapsed && item.badge > 0 && (
+            <span className="bg-blue-500/20 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+              {item.badge}
+            </span>
+          )}
+          {isCollapsed && item.badge > 0 && (
+            <span className="absolute top-2 right-2 w-2 h-2 bg-blue-400 rounded-full" />
+          )}
+        </button>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] flex antialiased font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] flex antialiased font-sans">
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
@@ -236,42 +233,46 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
         </div>
       )}
 
-      {/* ============ LEFT SIDEBAR ============ */}
+      {/* ============ LEFT SIDEBAR (NO SCROLLBARS) ============ */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 bg-[#0B2545] text-slate-300 flex flex-col transition-all duration-300 ease-in-out
-        md:sticky md:top-0 md:h-screen
+        fixed inset-y-0 left-0 z-40 bg-[#1E2434] text-slate-300 flex flex-col transition-all duration-300 ease-in-out overflow-x-hidden overflow-y-hidden select-none
+        md:sticky md:top-0 md:h-screen shrink-0
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        ${isCollapsed ? 'w-[70px]' : 'w-[260px]'}
+        ${isCollapsed ? 'w-[72px]' : 'w-[250px]'}
       `}>
         
-        {/* Sidebar Header — Logo */}
-        <div className={`px-4 pt-5 pb-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} shrink-0`}>
-          <div className="w-9 h-9 rounded-full bg-[#1a3a5c] flex items-center justify-center shrink-0 overflow-hidden">
-            <img src={logo} alt="BLinked" className="w-7 h-7 object-contain" />
+        {/* Sidebar Header — White Box Landmark Icon & Brand Title */}
+        <div className={`px-4 pt-6 pb-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} shrink-0`}>
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-xs">
+            <svg className="w-5 h-5 text-[#1E2434]" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 7v2h20V7L12 2zm-8 9v8h3v-8H4zm6 0v8h4v-8h-4zm7 0v8h3v-8h-3zM2 20v2h20v-2H2z" />
+            </svg>
           </div>
           {!isCollapsed && (
             <div className="leading-tight">
-              <span className="text-white font-bold text-sm block">Barangay Link</span>
-              <span className="text-slate-500 text-[10px] font-medium block">Community Services Admin</span>
+              <span className="text-white font-bold text-sm block tracking-tight">Barangay Link</span>
+              <span className="text-slate-400 text-[10px] font-medium block">
+                {currentUserType === 'personnel' ? 'Field Operations' : 'Community Service Admin'}
+              </span>
             </div>
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto">
-          {/* MENU group */}
-          <div className={`px-5 pt-2 pb-2 ${isCollapsed ? 'hidden' : 'block'}`}>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Menu</span>
+        {/* Navigation (HIDDEN SCROLLBARS) */}
+        <nav className="flex-1 overflow-x-hidden overflow-y-auto pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {/* MENU Section 1 */}
+          <div className={`px-5 pt-2 pb-1.5 ${isCollapsed ? 'hidden' : 'block'}`}>
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">MENU</span>
           </div>
           <div className="space-y-0.5">
             {menuItems.map(renderNavItem)}
           </div>
 
-          {/* SYSTEM group */}
+          {/* MENU Section 2 (System items like Audit Logs) */}
           {systemItems.length > 0 && (
             <>
-              <div className={`px-5 pt-6 pb-2 ${isCollapsed ? 'hidden' : 'block'}`}>
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">System</span>
+              <div className={`px-5 pt-5 pb-1.5 ${isCollapsed ? 'hidden' : 'block'}`}>
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">MENU</span>
               </div>
               <div className="space-y-0.5">
                 {systemItems.map(renderNavItem)}
@@ -280,26 +281,28 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
           )}
         </nav>
 
-        {/* Sidebar Footer — Barangay Identity & Collapse Toggle */}
-        <div className={`px-4 py-4 border-t border-slate-700/40 shrink-0 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between gap-2'}`}>
+        {/* Sidebar Footer — Brgy. San Vicente Card */}
+        <div className={`p-4 border-t border-slate-700/30 shrink-0 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between gap-2'}`}>
           {!isCollapsed && (
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-[#1a3a5c] flex items-center justify-center text-[10px] font-black text-[#D4A843] shrink-0">
-                SV
+              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-xs">
+                <svg className="w-4 h-4 text-[#1E2434]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 7v2h20V7L12 2zm-8 9v8h3v-8H4zm6 0v8h4v-8h-4zm7 0v8h3v-8h-3zM2 20v2h20v-2H2z" />
+                </svg>
               </div>
               <div className="leading-tight min-w-0">
                 <span className="text-white text-xs font-bold block truncate">Brgy. San Vicente</span>
-                <span className="text-slate-500 text-[10px] font-medium block truncate">Apalit, Pampanga</span>
+                <span className="text-slate-400 text-[10px] font-medium block truncate">Apalit, Pampanga</span>
               </div>
             </div>
           )}
           
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg hover:bg-[#1a3a5c] text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+            className="w-7 h-7 rounded-lg bg-[#283248] hover:bg-[#334155] text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             title={isCollapsed ? "Expand sidebar" : "Minimize sidebar"}
           >
-            {isCollapsed ? <PanelLeftOpen className="w-4.5 h-4.5" /> : <PanelLeftClose className="w-4.5 h-4.5" />}
+            {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
           </button>
         </div>
       </aside>

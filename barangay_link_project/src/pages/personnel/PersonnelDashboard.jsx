@@ -127,7 +127,7 @@ const PersonnelDashboard = () => {
     .slice(0, 6);
 
   return (
-    <div className="space-y-6 text-left font-sans relative">
+    <div className="w-full space-y-5 pb-6 text-left font-sans relative">
       
       {/* Toast */}
       {toastMessage && (

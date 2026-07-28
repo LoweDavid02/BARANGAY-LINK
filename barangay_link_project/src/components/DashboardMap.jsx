@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// Custom Icon for urgent/high priority tickets (optional enhancement)
+// Custom Icon for priority tickets
 const createCustomIcon = (color) => {
   return new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -28,40 +28,46 @@ const createCustomIcon = (color) => {
   });
 };
 
-const DashboardMap = ({ tickets }) => {
-  // Center map on San Vicente, Apalit, Pampanga approx coordinates
-  const defaultCenter = [14.9472, 120.7512]; // Centered more accurately within the bounds
+const DashboardMap = ({ tickets = [] }) => {
+  // Centered precisely on San Vicente, Apalit, Pampanga
+  const defaultCenter = [14.9472, 120.7512];
   
   // Bounding box for San Vicente, Apalit [SouthWest, NorthEast]
   const sanVicenteBounds = [
-    [14.9404455, 120.7304056],
-    [14.9605818, 120.7659459]
+    [14.9354455, 120.7254056],
+    [14.9655818, 120.7709459]
   ];
 
   return (
-    <div className="w-full relative z-0" style={{ height: 350 }}>
+    <div className="w-full relative z-0 rounded-2xl overflow-hidden shadow-inner border border-slate-800" style={{ height: 380 }}>
       <MapContainer 
         center={defaultCenter} 
-        zoom={15} 
-        scrollWheelZoom={false}
+        zoom={16} 
+        scrollWheelZoom={true}
         maxBounds={sanVicenteBounds}
-        maxBoundsViscosity={1.0}
+        maxBoundsViscosity={0.8}
         minZoom={14}
-        style={{ height: '100%', width: '100%', zIndex: 0 }}
+        maxZoom={19}
+        style={{ height: '100%', width: '100%', zIndex: 0, backgroundColor: '#090D16' }}
       >
+        {/* CARTO DB DARK MATTER HIGH-DETAIL TILE LAYER (ROADS, STREETS, LANDMARKS) */}
         <TileLayer
-          attribution='&copy; Google Maps'
-          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          maxZoom={19}
+          maxNativeZoom={19}
+          subdomains="abcd"
         />
         
+        {/* Crisp Cyan Municipal Boundary Overlay */}
         <GeoJSON 
           data={sanVicenteGeoJSON} 
           style={{
-            color: '#3b82f6', // Tailwind blue-500
-            weight: 3,
-            opacity: 0.8,
-            fillColor: '#3b82f6',
-            fillOpacity: 0.05,
+            color: '#38BDF8', // Tailwind sky-400
+            weight: 2.5,
+            opacity: 0.95,
+            fillColor: '#0284C7',
+            fillOpacity: 0.12,
             dashArray: '5, 5'
           }} 
         />
@@ -69,9 +75,8 @@ const DashboardMap = ({ tickets }) => {
         {tickets.map((ticket, idx) => {
           if (!ticket.location || !ticket.location.lat || !ticket.location.lng) return null;
           
-          // Determine marker color based on priority
           let markerColor = 'blue';
-          if (ticket.priority === 'HIGH' || ticket.priority === 'High Priority') markerColor = 'red';
+          if (ticket.priority === 'HIGH' || ticket.priority === 'High Priority' || ticket.priority === 'Urgent') markerColor = 'red';
           if (ticket.priority === 'MEDIUM' || ticket.priority === 'Medium Priority') markerColor = 'gold';
 
           return (
@@ -81,14 +86,14 @@ const DashboardMap = ({ tickets }) => {
               icon={createCustomIcon(markerColor)}
             >
               <Popup>
-                <div className="text-left min-w-[200px]">
-                  <h5 className="font-extrabold text-slate-900 text-sm mb-1">{ticket.subject}</h5>
-                  <p className="text-xs text-slate-600 mb-2">{ticket.location.address}</p>
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className={`px-2 py-0.5 rounded-full ${markerColor === 'red' ? 'bg-red-100 text-red-700' : markerColor === 'gold' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {ticket.priority}
+                <div className="text-left min-w-[210px] p-1 font-sans">
+                  <h5 className="font-extrabold text-slate-900 text-sm mb-1 leading-tight">{ticket.subject}</h5>
+                  <p className="text-xs text-slate-600 mb-2 font-medium">{ticket.location?.address || 'San Vicente, Apalit'}</p>
+                  <div className="flex justify-between items-center text-[10px] font-extrabold">
+                    <span className={`px-2 py-0.5 rounded-md ${markerColor === 'red' ? 'bg-red-100 text-red-700' : markerColor === 'gold' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {ticket.priority || 'Normal'}
                     </span>
-                    <span className="text-slate-400">{ticket.status}</span>
+                    <span className="text-slate-500">{ticket.status}</span>
                   </div>
                 </div>
               </Popup>
