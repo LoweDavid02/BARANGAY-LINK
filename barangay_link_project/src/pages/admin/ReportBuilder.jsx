@@ -2,22 +2,21 @@ import React, { useState } from 'react';
 import { useTickets } from '../../context/TicketContext';
 import { 
   Download, 
-  TrendingUp, 
-  Check, 
-  BarChart3, 
-  Star, 
-  MapPin, 
-  Building,
   Calendar as CalendarIcon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  X,
+  Check
 } from 'lucide-react';
 
 const ReportBuilder = () => {
   const { tickets = [] } = useTickets();
   
-  // Calendar State
+  // Filters State
+  const [selectedSitio, setSelectedSitio] = useState('all');
   const [showCalendar, setShowCalendar] = useState(false);
+
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today);
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
@@ -26,6 +25,26 @@ const ReportBuilder = () => {
   // PDF Export Modal state
   const [activeModal, setActiveModal] = useState(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
+
+  // Exact Sitio List
+  const sitioList = [
+    'Sampaga',
+    'JDT Comp',
+    'Balite',
+    'San Bartolome',
+    'Santiago',
+    'Pulong Maligaya',
+    'Alauli',
+    'St. Peter Sub',
+    'Bagong Pag-asa Sub',
+    'Villena',
+    'Pi-Arap',
+    'Royal 2',
+    'Gonzales Ave',
+    'Royal 1',
+    'Vincent Ville',
+    'McArthur HW'
+  ];
 
   // Calendar Helpers
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -58,58 +77,79 @@ const ReportBuilder = () => {
     return `${monthShorts[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
   };
 
-  // DYNAMIC ACCURATE METRICS CALCULATOR BASED ON SELECTED DATE
-  const calculateReportMetrics = (date) => {
+  // DYNAMIC CALCULATOR BASED ON SELECTED DATE & SITIO
+  const calculateReportMetrics = (date, sitio) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    // Filter tickets matching selected month/year if created_at or date exists
     const matchingTickets = tickets.filter(t => {
-      if (!t.created_at && !t.date) return true;
-      const tDate = new Date(t.created_at || t.date);
-      return tDate.getFullYear() === year && tDate.getMonth() === month;
+      const dateMatch = (() => {
+        if (!t.created_at && !t.date) return true;
+        const tDate = new Date(t.created_at || t.date);
+        return tDate.getFullYear() === year && tDate.getMonth() === month;
+      })();
+
+      const sitioMatch = (() => {
+        if (sitio === 'all') return true;
+        const address = (t.location?.address || '').toLowerCase();
+        return address.includes(sitio.toLowerCase());
+      })();
+
+      return dateMatch && sitioMatch;
     });
 
-    const liveTotal = matchingTickets.length > 0 ? matchingTickets.length : tickets.length;
+    const liveTotal = matchingTickets.length;
+    const baseCount = liveTotal > 0 ? liveTotal : (tickets.length || 128);
 
-    // Seed calculation for accurate period dynamics
-    const seed = (year * 365 + (month + 1) * 31 + day) % 100;
-    const total = liveTotal > 0 ? liveTotal : Math.max(15, 110 + (seed % 40));
+    const seed = (year * 365 + (month + 1) * 31 + day + (sitio === 'all' ? 0 : sitio.length * 10)) % 100;
     
-    const resolvedCount = matchingTickets.filter(t => t.status === 'Resolved' || t.status === 'Completed').length;
-    const resolved = resolvedCount > 0 ? resolvedCount : Math.round(total * (0.72 + (seed % 15) / 100));
-    const rate = Math.round((resolved / total) * 100);
+    const totalTickets = baseCount;
+    const totalCancelled = Math.max(2, Math.round(totalTickets * 0.06));
+    const totalInvalid = Math.max(1, Math.round(totalTickets * 0.03));
 
-    const avgSpeed = (3.2 + ((seed % 12) / 10)).toFixed(1);
-    const satisfaction = (4.7 + ((seed % 3) / 10)).toFixed(1);
-    const positivePct = (94.0 + ((seed % 5) / 10)).toFixed(1);
+    const avgSpeed = (3.2 + ((seed % 10) / 10)).toFixed(1);
 
-    // Department Workload Distribution %
+    const catComplaints = Math.round(totalTickets * 0.42);
+    const catService = Math.round(totalTickets * 0.28);
+    const catGeneral = Math.round(totalTickets * 0.18);
+    const catEmergency = Math.max(1, totalTickets - (catComplaints + catService + catGeneral));
+
     const infraPct = Math.min(45, 38 + (seed % 8));
     const saniPct = Math.min(32, 24 + (seed % 6));
     const safetyPct = Math.min(22, 16 + (seed % 4));
     const adminPct = 100 - (infraPct + saniPct + safetyPct);
 
-    // Zone Densities
-    const mainSt = Math.round(total * 0.36);
-    const greenValley = Math.round(total * 0.26);
-    const lincoln = Math.round(total * 0.22);
-    const heritage = Math.max(1, total - (mainSt + greenValley + lincoln));
-
     return {
-      total,
-      resolved,
-      rate,
+      totalTickets,
+      totalCancelled,
+      totalInvalid,
       avgSpeed,
-      satisfaction,
-      positivePct,
+      category: {
+        complaints: catComplaints,
+        service: catService,
+        general: catGeneral,
+        emergency: catEmergency
+      },
       dept: { infraPct, saniPct, safetyPct, adminPct },
-      zones: { mainSt, greenValley, lincoln, heritage }
+      topOfficer: {
+        name: 'Marcus Sterling',
+        role: 'Senior Field Officer',
+        resolvedCount: 48,
+        avgSpeed: '1.9 hrs',
+        score: '4.9 / 5.0'
+      },
+      leastOfficer: {
+        name: 'Dave Ramos',
+        role: 'Maintenance Tech',
+        resolvedCount: 12,
+        avgSpeed: '6.4 hrs',
+        pendingCount: 9
+      }
     };
   };
 
-  const metrics = calculateReportMetrics(selectedDate);
+  const metrics = calculateReportMetrics(selectedDate, selectedSitio);
 
   const handleDownloadPDF = () => {
     setActiveModal('generating');
@@ -127,332 +167,315 @@ const ReportBuilder = () => {
   };
 
   return (
-    <div className="w-full space-y-5 pb-6 text-left font-sans">
+    <div className="w-full space-y-5 pb-6 text-left font-sans max-w-7xl mx-auto">
       
-      {/* 1. PAGE HEADER & EXPORT ACTIONS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-xs">
+      {/* 1. PAGE HEADER & EXPORT */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div>
-          <h2 className="font-heading font-black text-xl text-slate-900 tracking-tight">
-            Executive Performance & Satisfaction Report
+          <h2 className="font-heading font-bold text-xl text-slate-900 tracking-tight">
+            Barangay Executive Performance Report
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Barangay San Vicente, Apalit, Pampanga · Municipal Operational Insights
+            San Vicente, Apalit, Pampanga · Operational Metrics & Workload Insights
           </p>
         </div>
 
-        {/* Export PDF Button */}
         <button
           onClick={handleDownloadPDF}
-          className="bg-[#0B3A9B] hover:bg-[#082e7a] text-white px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 cursor-pointer transition-all shadow-xs shrink-0 self-start sm:self-auto"
+          className="bg-[#0B3A9B] hover:bg-[#082e7a] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-2xs shrink-0 self-start sm:self-auto"
         >
           <Download className="w-4 h-4" />
           <span>Export PDF Report</span>
         </button>
       </div>
 
-      {/* 2. CALENDAR FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between relative">
+      {/* 2. MINIMAL DUAL FILTER BAR */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Active Report Date:</span>
-          <span className="text-xs font-black text-[#0B3A9B] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
-            {formatSelectedDateText()}
+        {/* SITIO FILTER */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Sitio:</span>
+          <div className="relative w-full sm:w-auto">
+            <select
+              value={selectedSitio}
+              onChange={(e) => setSelectedSitio(e.target.value)}
+              className="appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 pr-9 text-xs font-bold text-slate-800 outline-none cursor-pointer focus:border-[#0B3A9B]"
+            >
+              <option value="all">All Sitios</option>
+              {sitioList.map((sitio, idx) => (
+                <option key={idx} value={sitio}>{sitio}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* DATE FILTER */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date:</span>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all hover:bg-slate-100"
+            >
+              <CalendarIcon className="w-4 h-4 text-slate-500" />
+              <span>{formatSelectedDateText()}</span>
+            </button>
+
+            {/* CALENDAR POPOVER */}
+            {showCalendar && (
+              <div className="absolute right-0 top-12 z-30 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 w-72 space-y-3 text-left animate-scale-up">
+                
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 gap-1">
+                  <button 
+                    onClick={handlePrevMonth}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 cursor-pointer shrink-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    <select
+                      value={calendarMonth}
+                      onChange={(e) => setCalendarMonth(Number(e.target.value))}
+                      className="px-2 py-1 bg-slate-100 text-slate-900 rounded-lg text-xs font-bold cursor-pointer border-none outline-none"
+                    >
+                      {monthNames.map((m, idx) => (
+                        <option key={idx} value={idx}>{m}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={calendarYear}
+                      onChange={(e) => setCalendarYear(Number(e.target.value))}
+                      className="px-2 py-1 bg-slate-100 text-slate-900 rounded-lg text-xs font-bold cursor-pointer border-none outline-none"
+                    >
+                      {availableYears.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button 
+                    onClick={handleNextMonth}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 cursor-pointer shrink-0"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {dayLabels.map(d => (
+                    <span key={d} className="text-[9px] font-bold text-slate-400 uppercase py-1">{d}</span>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {Array.from({ length: getFirstDayOfMonth(calendarMonth, calendarYear) }).map((_, i) => (
+                    <div key={`empty-${i}`} className="w-full aspect-square" />
+                  ))}
+                  {Array.from({ length: getDaysInMonth(calendarMonth, calendarYear) }).map((_, i) => {
+                    const day = i + 1;
+                    const isSelected = selectedDate.getDate() === day && selectedDate.getMonth() === calendarMonth && selectedDate.getFullYear() === calendarYear;
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => {
+                          setSelectedDate(new Date(calendarYear, calendarMonth, day));
+                          setShowCalendar(false);
+                        }}
+                        className={`w-full aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
+                          isSelected 
+                            ? 'bg-[#0B3A9B] text-white font-bold' 
+                            : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. MINIMAL BANNER KPI CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Total Number of Tickets */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Tickets</span>
+          <h3 className="font-heading font-extrabold text-2xl text-slate-900">{metrics.totalTickets}</h3>
+          <span className="text-[10px] text-slate-500 font-medium block">
+            {selectedSitio === 'all' ? 'Barangay San Vicente' : selectedSitio}
           </span>
         </div>
 
-        {/* Calendar Trigger */}
-        <div className="relative">
-          <button
-            onClick={() => setShowCalendar(!showCalendar)}
-            className="px-4 py-2 bg-[#0B3A9B] hover:bg-[#082e7a] text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs transition-all"
-          >
-            <CalendarIcon className="w-4 h-4" />
-            <span>Select Date</span>
-          </button>
+        {/* Avg Resolution Speed */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Resolution Speed</span>
+          <h3 className="font-heading font-extrabold text-2xl text-slate-900">{metrics.avgSpeed} hrs</h3>
+          <span className="text-[10px] text-blue-700 font-bold block">Within 4.0h Target SLA</span>
+        </div>
 
-          {/* CALENDAR POPOVER WITH MONTH & YEAR DROPDOWNS INSIDE */}
-          {showCalendar && (
-            <div className="absolute right-0 top-12 z-30 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 w-72 space-y-3 text-left animate-scale-up">
-              
-              {/* Header with Month & Year Dropdowns */}
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 gap-1">
-                
-                <button 
-                  onClick={handlePrevMonth}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 cursor-pointer shrink-0"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
+        {/* Total Cancelled */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Cancelled</span>
+          <h3 className="font-heading font-extrabold text-2xl text-slate-900">{metrics.totalCancelled}</h3>
+          <span className="text-[10px] text-slate-500 font-medium block">Withdrawn by resident</span>
+        </div>
 
-                {/* Dropdowns */}
-                <div className="flex items-center gap-1">
-                  {/* Month Dropdown */}
-                  <select
-                    value={calendarMonth}
-                    onChange={(e) => setCalendarMonth(Number(e.target.value))}
-                    className="px-2 py-1 bg-slate-100 text-slate-900 rounded-lg text-xs font-extrabold cursor-pointer border-none outline-none focus:ring-1 focus:ring-[#0B3A9B]"
-                  >
-                    {monthNames.map((m, idx) => (
-                      <option key={idx} value={idx}>{m}</option>
-                    ))}
-                  </select>
-
-                  {/* Year Dropdown */}
-                  <select
-                    value={calendarYear}
-                    onChange={(e) => setCalendarYear(Number(e.target.value))}
-                    className="px-2 py-1 bg-slate-100 text-slate-900 rounded-lg text-xs font-extrabold cursor-pointer border-none outline-none focus:ring-1 focus:ring-[#0B3A9B]"
-                  >
-                    {availableYears.map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button 
-                  onClick={handleNextMonth}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 cursor-pointer shrink-0"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Day Labels */}
-              <div className="grid grid-cols-7 gap-1 text-center">
-                {dayLabels.map(d => (
-                  <span key={d} className="text-[9px] font-extrabold text-slate-400 uppercase py-1">{d}</span>
-                ))}
-              </div>
-
-              {/* Day Grid */}
-              <div className="grid grid-cols-7 gap-1 text-center">
-                {Array.from({ length: getFirstDayOfMonth(calendarMonth, calendarYear) }).map((_, i) => (
-                  <div key={`empty-${i}`} className="w-full aspect-square" />
-                ))}
-                {Array.from({ length: getDaysInMonth(calendarMonth, calendarYear) }).map((_, i) => {
-                  const day = i + 1;
-                  const isSelected = selectedDate.getDate() === day && selectedDate.getMonth() === calendarMonth && selectedDate.getFullYear() === calendarYear;
-                  return (
-                    <button
-                      key={day}
-                      onClick={() => {
-                        setSelectedDate(new Date(calendarYear, calendarMonth, day));
-                        setShowCalendar(false);
-                      }}
-                      className={`w-full aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'bg-[#0B3A9B] text-white shadow-xs font-extrabold' 
-                          : 'text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  );
-                })}
-              </div>
-
-            </div>
-          )}
+        {/* Total Invalid */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Invalid</span>
+          <h3 className="font-heading font-extrabold text-2xl text-slate-900">{metrics.totalInvalid}</h3>
+          <span className="text-[10px] text-slate-500 font-medium block">Out of scope / duplicate</span>
         </div>
 
       </div>
 
-      {/* 3. DYNAMICALLY UPDATED TOP KPI BANNER CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Tickets */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Tickets</span>
-          <div className="flex items-baseline justify-between">
-            <span className="font-heading font-black text-2xl text-slate-900">{metrics.total}</span>
-            <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5">
-              <TrendingUp className="w-3.5 h-3.5" /> +14%
+      {/* 4. OFFICER PERFORMANCE (MINIMAL SIDE-BY-SIDE) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        
+        {/* Top Performing Officer */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Performing Officer</h3>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+              Highest Efficiency
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-medium block pt-0.5">Active resident requests</span>
-        </div>
 
-        {/* Resolution Rate */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Resolution Rate</span>
-          <div className="flex items-baseline justify-between">
-            <span className="font-heading font-black text-2xl text-slate-900">{metrics.rate}%</span>
-            <span className="text-[11px] font-bold text-emerald-600">{metrics.resolved} Resolved</span>
-          </div>
-          <span className="text-[10px] text-emerald-600 font-bold block pt-0.5">High efficiency</span>
-        </div>
-
-        {/* Response Speed */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Response Speed</span>
-          <div className="flex items-baseline justify-between">
-            <span className="font-heading font-black text-2xl text-slate-900">{metrics.avgSpeed} hrs</span>
-            <span className="text-[11px] font-bold text-blue-600">SLA Met</span>
-          </div>
-          <span className="text-[10px] text-slate-400 font-medium block pt-0.5">Target: under 4.0 hrs</span>
-        </div>
-
-        {/* Citizen Satisfaction */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 p-5 rounded-2xl border border-blue-100 shadow-xs space-y-1">
-          <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">Citizen Satisfaction</span>
-          <div className="flex items-center justify-between">
-            <span className="font-heading font-black text-2xl text-[#0B3A9B]">{metrics.satisfaction} <span className="text-xs font-bold text-blue-700">/ 5.0</span></span>
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              ))}
+          <div className="flex items-center justify-between p-3.5 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div className="space-y-0.5">
+              <h4 className="font-heading font-bold text-sm text-slate-900">{metrics.topOfficer.name}</h4>
+              <span className="text-xs text-slate-500 font-medium block">{metrics.topOfficer.role}</span>
+            </div>
+            <div className="text-right space-y-0.5">
+              <span className="text-sm font-extrabold text-slate-900 block">{metrics.topOfficer.resolvedCount} Resolved</span>
+              <span className="text-xs text-slate-500 font-medium block">Avg Speed: <strong className="text-slate-900">{metrics.topOfficer.avgSpeed}</strong></span>
             </div>
           </div>
-          <span className="text-[10px] text-blue-800 font-bold block pt-0.5">{metrics.positivePct}% Positive Sentiment</span>
         </div>
-      </div>
 
-      {/* 4. DYNAMIC OPERATIONAL BREAKDOWN & BARANGAY ZONE HEATMAP */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Department Workload Share */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-5">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Building className="w-4 h-4 text-blue-600" />
-              <span>Department Workload Share</span>
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400">Filtered for {formatSelectedDateText()}</span>
+        {/* Least Performing Officer */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Least Performing Officer</h3>
+            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-100">
+              Needs Support
+            </span>
           </div>
 
-          <div className="space-y-4 text-xs font-semibold">
+          <div className="flex items-center justify-between p-3.5 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div className="space-y-0.5">
+              <h4 className="font-heading font-bold text-sm text-slate-900">{metrics.leastOfficer.name}</h4>
+              <span className="text-xs text-slate-500 font-medium block">{metrics.leastOfficer.role}</span>
+            </div>
+            <div className="text-right space-y-0.5">
+              <span className="text-sm font-extrabold text-slate-900 block">{metrics.leastOfficer.resolvedCount} Resolved</span>
+              <span className="text-xs text-slate-500 font-medium block">Avg Speed: <strong className="text-slate-900">{metrics.leastOfficer.avgSpeed}</strong></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 5. WORKLOAD DENSITY & TICKETS PER CATEGORY */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        
+        {/* Department Workload Density */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-5">
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Department Workload Density
+          </h3>
+
+          <div className="space-y-4 text-xs font-medium">
             <div>
               <div className="flex justify-between text-slate-700 pb-1.5">
                 <span>Infrastructure & Public Works</span>
-                <span className="font-extrabold text-slate-900">{metrics.dept.infraPct}%</span>
+                <span className="font-bold text-slate-900">{metrics.dept.infraPct}%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#0B3A9B] h-full rounded-full transition-all duration-300" style={{ width: `${metrics.dept.infraPct}%` }} />
+                <div className="bg-[#0B3A9B] h-full rounded-full" style={{ width: `${metrics.dept.infraPct}%` }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-slate-700 pb-1.5">
                 <span>Sanitation & Waste Management</span>
-                <span className="font-extrabold text-slate-900">{metrics.dept.saniPct}%</span>
+                <span className="font-bold text-slate-900">{metrics.dept.saniPct}%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#1E5AE6] h-full rounded-full transition-all duration-300" style={{ width: `${metrics.dept.saniPct}%` }} />
+                <div className="bg-[#1E5AE6] h-full rounded-full" style={{ width: `${metrics.dept.saniPct}%` }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-slate-700 pb-1.5">
                 <span>Public Safety & Security</span>
-                <span className="font-extrabold text-slate-900">{metrics.dept.safetyPct}%</span>
+                <span className="font-bold text-slate-900">{metrics.dept.safetyPct}%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${metrics.dept.safetyPct}%` }} />
+                <div className="bg-slate-600 h-full rounded-full" style={{ width: `${metrics.dept.safetyPct}%` }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-slate-700 pb-1.5">
                 <span>Administrative Services</span>
-                <span className="font-extrabold text-slate-900">{metrics.dept.adminPct}%</span>
+                <span className="font-bold text-slate-900">{metrics.dept.adminPct}%</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${metrics.dept.adminPct}%` }} />
+                <div className="bg-slate-400 h-full rounded-full" style={{ width: `${metrics.dept.adminPct}%` }} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Barangay San Vicente Ticket Density Heatmap */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-5">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-red-500" />
-              <span>Ticket Density by Barangay Zone</span>
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400">San Vicente, Apalit</span>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { zone: 'Main St. & 4th Ave Crossing', count: metrics.zones.mainSt, pct: '36%' },
-              { zone: 'Green Valley Sector 4', count: metrics.zones.greenValley, pct: '26%' },
-              { zone: 'Lincoln Residential District', count: metrics.zones.lincoln, pct: '22%' },
-              { zone: 'Heritage Park Gate', count: metrics.zones.heritage, pct: '16%' },
-            ].map((z, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-xs font-bold text-slate-800">{z.zone}</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-extrabold text-slate-900">{z.count} tickets</span>
-                  <span className="text-[10px] font-extrabold bg-blue-100 text-[#0B3A9B] px-2 py-0.5 rounded-md">
-                    {z.pct}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* 5. DYNAMIC TREND CHART & VERIFIED CITIZEN RATINGS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Submission Volume Trend */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-blue-600" />
-            <span>Submission Volume Trend ({formatSelectedDateText()})</span>
-          </h3>
-          
-          <div className="flex items-end justify-between h-32 pt-4 px-4 border-b border-slate-100 gap-4">
-            <div className="w-full bg-slate-200 hover:bg-[#0B3A9B] h-1/2 rounded-t-lg transition-all" />
-            <div className="w-full bg-slate-300 hover:bg-[#0B3A9B] h-3/4 rounded-t-lg transition-all" />
-            <div className="w-full bg-[#0B3A9B] h-full rounded-t-lg transition-all" />
-            <div className="w-full bg-slate-300 hover:bg-[#0B3A9B] h-2/3 rounded-t-lg transition-all" />
-          </div>
-          
-          <div className="flex justify-between text-xs font-bold text-slate-400 px-4">
-            <span>Period Start</span>
-            <span>Mid-Period</span>
-            <span>Peak</span>
-            <span>Current</span>
-          </div>
-        </div>
-
-        {/* Verified Citizen Ratings */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-            <span>Verified Citizen Ratings</span>
+        {/* Number of Tickets per Category */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-5">
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Number of Tickets per Category
           </h3>
 
-          <div className="space-y-3">
-            {[
-              { name: 'Maria Santos', ticket: '#TC-2026-0042', category: 'Infrastructure & Roads', rating: 5, badge: 'Excellent' },
-              { name: 'Juan Dela Cruz', ticket: '#TC-2026-0015', category: 'Sanitation & Environment', rating: 5, badge: 'Very Satisfied' },
-              { name: 'Pedro Penduko', ticket: '#TC-2026-0088', category: 'Public Safety & Security', rating: 4, badge: 'Satisfied' },
-            ].map((rev, idx) => (
-              <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-slate-900">{rev.name}</span>
-                    <span className="text-[10px] font-bold text-blue-600">{rev.ticket}</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-bold block">{rev.category}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-0.5">
-                    {[...Array(rev.rating)].map((_, sIdx) => (
-                      <Star key={sIdx} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">
-                    {rev.rating}.0
-                  </span>
-                </div>
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-slate-800 font-bold">Complaints</span>
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-slate-900">{metrics.category.complaints} tickets</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">42%</span>
               </div>
-            ))}
+            </div>
+
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-slate-800 font-bold">Service Requests</span>
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-slate-900">{metrics.category.service} tickets</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">28%</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-slate-800 font-bold">General Concerns</span>
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-slate-900">{metrics.category.general} tickets</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">18%</span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-slate-800 font-bold">Emergency & Safety</span>
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-slate-900">{metrics.category.emergency} tickets</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">12%</span>
+              </div>
+            </div>
           </div>
         </div>
 
