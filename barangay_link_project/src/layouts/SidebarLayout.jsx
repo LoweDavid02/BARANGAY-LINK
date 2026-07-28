@@ -176,12 +176,17 @@ const SidebarLayout = ({ children, pageTitle = "Overview" }) => {
           }}
           title={isCollapsed ? item.label : undefined}
           className={`
-            w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer text-left relative my-0.5
+            w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 pl-4 pr-3'} py-2.5 rounded-r-xl rounded-l-xs text-[13px] font-medium transition-all duration-200 cursor-pointer text-left relative my-0.5 overflow-hidden
             ${isActive 
               ? 'bg-[#334155] text-white font-bold shadow-xs' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-[#263143]'}
           `}
         >
+          {/* WHITE VERTICAL STROKE ON LEFT SIDE WHEN ACTIVE */}
+          {isActive && (
+            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-white" />
+          )}
+
           <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
           {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
           {!isCollapsed && item.badge > 0 && (
