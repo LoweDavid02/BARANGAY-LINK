@@ -110,10 +110,9 @@ const ReportBuilder = () => {
 
     const avgSpeed = (3.2 + ((seed % 10) / 10)).toFixed(1);
 
-    const catComplaints = Math.round(totalTickets * 0.42);
-    const catService = Math.round(totalTickets * 0.28);
-    const catGeneral = Math.round(totalTickets * 0.18);
-    const catEmergency = Math.max(1, totalTickets - (catComplaints + catService + catGeneral));
+    const catComplaints = Math.round(totalTickets * 0.52);
+    const catService = Math.round(totalTickets * 0.33);
+    const catGeneral = Math.max(1, totalTickets - (catComplaints + catService));
 
     const infraPct = Math.min(45, 38 + (seed % 8));
     const saniPct = Math.min(32, 24 + (seed % 6));
@@ -128,8 +127,7 @@ const ReportBuilder = () => {
       category: {
         complaints: catComplaints,
         service: catService,
-        general: catGeneral,
-        emergency: catEmergency
+        general: catGeneral
       },
       dept: { infraPct, saniPct, safetyPct, adminPct },
       topOfficer: {
@@ -189,13 +187,13 @@ const ReportBuilder = () => {
         </button>
       </div>
 
-      {/* 2. MINIMAL DUAL FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* 2. DUAL FILTER BAR (GROUPED TOGETHER) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-wrap items-center gap-6">
         
         {/* SITIO FILTER */}
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2.5">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Sitio:</span>
-          <div className="relative w-full sm:w-auto">
+          <div className="relative">
             <select
               value={selectedSitio}
               onChange={(e) => setSelectedSitio(e.target.value)}
@@ -211,7 +209,7 @@ const ReportBuilder = () => {
         </div>
 
         {/* DATE FILTER */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-2.5">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date:</span>
           
           <div className="relative">
@@ -449,7 +447,7 @@ const ReportBuilder = () => {
               <span className="text-slate-800 font-bold">Complaints</span>
               <div className="flex items-center gap-3">
                 <span className="font-extrabold text-slate-900">{metrics.category.complaints} tickets</span>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">42%</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">52%</span>
               </div>
             </div>
 
@@ -457,7 +455,7 @@ const ReportBuilder = () => {
               <span className="text-slate-800 font-bold">Service Requests</span>
               <div className="flex items-center gap-3">
                 <span className="font-extrabold text-slate-900">{metrics.category.service} tickets</span>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">28%</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">33%</span>
               </div>
             </div>
 
@@ -465,15 +463,7 @@ const ReportBuilder = () => {
               <span className="text-slate-800 font-bold">General Concerns</span>
               <div className="flex items-center gap-3">
                 <span className="font-extrabold text-slate-900">{metrics.category.general} tickets</span>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">18%</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-slate-800 font-bold">Emergency & Safety</span>
-              <div className="flex items-center gap-3">
-                <span className="font-extrabold text-slate-900">{metrics.category.emergency} tickets</span>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">12%</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded">15%</span>
               </div>
             </div>
           </div>

@@ -29,49 +29,60 @@ const createCustomIcon = (color) => {
 };
 
 const DashboardMap = ({ tickets = [] }) => {
-  // Centered precisely on San Vicente, Apalit, Pampanga
-  const defaultCenter = [14.9472, 120.7512];
+  // Centered accurately on San Vicente town center, Apalit, Pampanga
+  const defaultCenter = [14.9495, 120.7580];
   
-  // Bounding box for San Vicente, Apalit [SouthWest, NorthEast]
+  // Relaxed Bounding box for San Vicente, Apalit
   const sanVicenteBounds = [
-    [14.9354455, 120.7254056],
-    [14.9655818, 120.7709459]
+    [14.9200, 120.7100],
+    [14.9800, 120.7900]
   ];
 
   return (
-    <div className="w-full relative z-0 rounded-2xl overflow-hidden shadow-inner border border-slate-800" style={{ height: 380 }}>
+    <div className="w-full relative z-0 rounded-2xl overflow-hidden shadow-inner border border-slate-800" style={{ height: 400 }}>
       <MapContainer 
         center={defaultCenter} 
         zoom={16} 
         scrollWheelZoom={true}
         maxBounds={sanVicenteBounds}
-        maxBoundsViscosity={0.8}
-        minZoom={14}
+        maxBoundsViscosity={0.5}
+        minZoom={13}
         maxZoom={19}
-        style={{ height: '100%', width: '100%', zIndex: 0, backgroundColor: '#090D16' }}
+        style={{ height: '100%', width: '100%', zIndex: 0, backgroundColor: '#0F172A' }}
       >
-        {/* CARTO DB DARK MATTER HIGH-DETAIL TILE LAYER (ROADS, STREETS, LANDMARKS) */}
+        {/* 1. BASE DARK MAP LAYER (ROADS & BUILDINGS) */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; CARTO &copy; OpenStreetMap'
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
           maxZoom={19}
           maxNativeZoom={19}
           subdomains="abcd"
+          zIndex={1}
         />
         
-        {/* Crisp Cyan Municipal Boundary Overlay */}
+        {/* 2. MUNICIPAL BOUNDARY OVERLAY */}
         <GeoJSON 
           data={sanVicenteGeoJSON} 
           style={{
-            color: '#38BDF8', // Tailwind sky-400
-            weight: 2.5,
-            opacity: 0.95,
+            color: '#38BDF8', // Neon Sky Blue outline
+            weight: 2,
+            opacity: 0.9,
             fillColor: '#0284C7',
-            fillOpacity: 0.12,
-            dashArray: '5, 5'
+            fillOpacity: 0.08,
+            dashArray: '4, 4'
           }} 
         />
+
+        {/* 3. HIGH-CONTRAST LABELS OVERLAY (STREET NAMES, ROADS, LANDMARKS ON TOP) */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
+          maxZoom={19}
+          maxNativeZoom={19}
+          subdomains="abcd"
+          zIndex={10}
+        />
         
+        {/* 4. TICKET MARKERS */}
         {tickets.map((ticket, idx) => {
           if (!ticket.location || !ticket.location.lat || !ticket.location.lng) return null;
           
