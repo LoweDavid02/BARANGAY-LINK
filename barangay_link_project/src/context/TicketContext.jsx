@@ -719,8 +719,6 @@ export const TicketProvider = ({ children }) => {
       return false;
     }
   };
-    }
-  };
 
   const updateTicketProgress = async (ticketId, progress, user) => {
     try {
