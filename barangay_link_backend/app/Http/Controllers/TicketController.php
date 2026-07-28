@@ -194,6 +194,21 @@ class TicketController extends Controller
             return response()->json(['message' => 'Ticket not found'], 404);
         }
 
+        // Mask resident sensitive PII for public guest tracking
+        if ($ticket->resident) {
+            $email = $ticket->resident->email ?? '';
+            $phone = $ticket->resident->phone ?? '';
+            
+            if ($email && str_contains($email, '@')) {
+                [$parts, $domain] = explode('@', $email, 2);
+                $maskedParts = substr($parts, 0, 2) . str_repeat('*', max(1, strlen($parts) - 2));
+                $ticket->resident->email = $maskedParts . '@' . $domain;
+            }
+            if ($phone && strlen($phone) > 6) {
+                $ticket->resident->phone = substr($phone, 0, 4) . '***' . substr($phone, -3);
+            }
+        }
+
         return response()->json($ticket);
     }
 
@@ -203,10 +218,10 @@ class TicketController extends Controller
     public function trackByContact(Request $request)
     {
         $request->validate([
-            'contact' => 'required|string',
+            'contact' => 'required|string|min:4|max:255',
         ]);
 
-        $contact = $request->contact;
+        $contact = trim($request->contact);
 
         $tickets = Ticket::with(['resident', 'location', 'assignedPersonnel.user'])
             ->whereHas('resident', function ($query) use ($contact) {
@@ -214,6 +229,22 @@ class TicketController extends Controller
             })
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Mask sensitive resident PII in public responses
+        foreach ($tickets as $t) {
+            if ($t->resident) {
+                $email = $t->resident->email ?? '';
+                $phone = $t->resident->phone ?? '';
+                if ($email && str_contains($email, '@')) {
+                    [$parts, $domain] = explode('@', $email, 2);
+                    $maskedParts = substr($parts, 0, 2) . str_repeat('*', max(1, strlen($parts) - 2));
+                    $t->resident->email = $maskedParts . '@' . $domain;
+                }
+                if ($phone && strlen($phone) > 6) {
+                    $t->resident->phone = substr($phone, 0, 4) . '***' . substr($phone, -3);
+                }
+            }
+        }
 
         return response()->json($tickets);
     }

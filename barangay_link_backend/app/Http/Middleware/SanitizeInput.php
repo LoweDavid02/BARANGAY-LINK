@@ -21,9 +21,10 @@ class SanitizeInput
             if (is_string($val)) {
                 // Strip null bytes and control characters
                 $val = str_replace(chr(0), '', $val);
-                // Strip HTML script tags and on* inline event handlers to prevent stored XSS
-                $val = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $val);
-                $val = preg_replace('/on[a-z]+\s*=\s*(["\']).*?\1/i', '', $val);
+                // Strip HTML tags
+                $val = strip_tags($val);
+                // Remove javascript: URI protocols
+                $val = preg_replace('/javascript\s*:/i', '', $val);
                 // Trim leading/trailing whitespace
                 $val = trim($val);
             }

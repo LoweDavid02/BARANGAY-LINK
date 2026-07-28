@@ -31,7 +31,7 @@ return [
     ]),
 
     'allowed_origins_patterns' => [
-        '#^https://.*\.onrender\.com$#',
+        '#^https://barangay-link-project\.onrender\.com$#',
     ],
 
     'allowed_headers' => [
