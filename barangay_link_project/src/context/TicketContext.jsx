@@ -3,14 +3,20 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const TicketContext = createContext();
 
 const getApiBase = () => {
-  let base = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL;
+  let base = import.meta.env.VITE_API_BASE;
   if (base) {
     if (!base.endsWith('/api') && !base.endsWith('/api/')) {
       base = base.replace(/\/$/, '') + '/api';
     }
     return base;
   }
-  return 'https://barangay-link-backend.onrender.com/api';
+  const hostname = window.location.hostname;
+  if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    if (hostname.includes('onrender.com') || hostname.includes('barangay')) {
+      return 'https://barangay-link-backend.onrender.com/api';
+    }
+  }
+  return 'http://localhost:8000/api';
 };
 
 const API_BASE = getApiBase();
@@ -457,9 +463,6 @@ export const TicketProvider = ({ children }) => {
       return true;
     } catch (err) {
       console.error("Login failed:", err);
-      if (err.name === 'TypeError' || err.message === 'Failed to fetch') {
-        throw new Error("Unable to connect to authentication server. Please check your internet connection or try again.");
-      }
       throw err;
     }
   };
@@ -495,9 +498,6 @@ export const TicketProvider = ({ children }) => {
       return true;
     } catch (err) {
       console.error("Google login failed:", err);
-      if (err.name === 'TypeError' || err.message === 'Failed to fetch') {
-        throw new Error("Unable to connect to authentication server. Please check your internet connection or try again.");
-      }
       throw err;
     }
   };
