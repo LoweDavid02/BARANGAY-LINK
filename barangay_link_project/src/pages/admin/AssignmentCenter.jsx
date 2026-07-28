@@ -46,6 +46,7 @@ const AssignmentCenter = () => {
   const [tempPriority, setTempPriority] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
   const [assignProgress, setAssignProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenDetails = (ticket) => {
     setSelectedTicketId(ticket.id);
@@ -1066,19 +1067,33 @@ const AssignmentCenter = () => {
                   Cancel
                 </button>
                 <button
-                  disabled={!tempPriority || !tempAssignee}
+                  disabled={!tempPriority || !tempAssignee || isSubmitting}
                   onClick={async () => {
-                    await assignPersonnel(selectedTicketId, tempAssignee);
-                    await updateTicketStatus(selectedTicketId, tempStatus, "Admin Officer", internalNotes, tempPriority);
-                    await refreshData();
-                    setActiveModal('status-success');
+                    setIsSubmitting(true);
+                    try {
+                      const assignedOk = await assignPersonnel(selectedTicketId, tempAssignee);
+                      await updateTicketStatus(selectedTicketId, tempStatus, "Admin Officer", internalNotes, tempPriority);
+                      await refreshData();
+                      setActiveModal('status-success');
+                    } catch (err) {
+                      console.error("Assignment failed:", err);
+                    } finally {
+                      setIsSubmitting(false);
+                    }
                   }}
-                  className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white transition-all shadow-md 
-                    ${(!tempPriority || !tempAssignee) 
+                  className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white transition-all shadow-md flex items-center gap-2
+                    ${(!tempPriority || !tempAssignee || isSubmitting) 
                       ? 'bg-slate-300 cursor-not-allowed' 
                       : 'bg-[#0B3A9B] hover:bg-[#093082] cursor-pointer'}`}
                 >
-                  Confirm Assignment
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    "Confirm Assignment"
+                  )}
                 </button>
               </div>
 

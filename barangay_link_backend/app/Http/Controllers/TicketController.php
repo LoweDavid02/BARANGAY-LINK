@@ -465,8 +465,12 @@ class TicketController extends Controller
                 ]);
             }
 
-            // Dispatch Real-time Event
-            event(new \App\Events\TicketUpdated($ticket));
+            // Dispatch Real-time Event (safely catch if Reverb is offline)
+            try {
+                event(new \App\Events\TicketUpdated($ticket));
+            } catch (\Throwable $e) {
+                \Log::warning("Broadcasting TicketUpdated failed: " . $e->getMessage());
+            }
 
             return response()->json($ticket->load(['assignedPersonnel.user', 'history']));
         });
@@ -625,8 +629,12 @@ class TicketController extends Controller
                 }
             });
 
-            // Dispatch Real-time Event
-            event(new \App\Events\TicketUpdated($ticket));
+            // Dispatch Real-time Event (safely catch if Reverb is offline)
+            try {
+                event(new \App\Events\TicketUpdated($ticket));
+            } catch (\Throwable $e) {
+                \Log::warning("Broadcasting TicketUpdated failed: " . $e->getMessage());
+            }
 
             return response()->json($ticket->load(['assignedPersonnel.user', 'history']));
         });

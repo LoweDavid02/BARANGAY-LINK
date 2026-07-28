@@ -613,6 +613,12 @@ export const TicketProvider = ({ children }) => {
       });
 
       if (res.ok) {
+        const ticketData = await res.json();
+        if (ticketData && ticketData.id) {
+          const mapped = mapTicket(ticketData);
+          setTickets(prev => prev.map(t => t.id.toLowerCase() === mapped.id.toLowerCase() ? mapped : t));
+        }
+        fetchData();
         return true;
       }
       return false;
@@ -687,6 +693,11 @@ export const TicketProvider = ({ children }) => {
       });
 
       if (res.ok) {
+        const ticketData = await res.json();
+        if (ticketData && ticketData.id) {
+          const mapped = mapTicket(ticketData);
+          setTickets(prev => prev.map(t => t.id.toLowerCase() === mapped.id.toLowerCase() ? mapped : t));
+        }
         fetchData();
         // Force refresh the tracked ticket details if currently tracked
         if (trackingId.replace('#', '').trim() === cleanTicketId) {
@@ -700,9 +711,14 @@ export const TicketProvider = ({ children }) => {
             });
           }
         }
+        return true;
       }
+      return false;
     } catch (err) {
       console.error("Error updating ticket status:", err);
+      return false;
+    }
+  };
     }
   };
 
