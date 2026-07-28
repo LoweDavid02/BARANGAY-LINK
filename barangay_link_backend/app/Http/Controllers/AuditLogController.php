@@ -11,9 +11,10 @@ class AuditLogController extends Controller
     /**
      * List all audit logs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $logs = AuditLog::with('ticket')->orderBy('timestamp', 'desc')->get();
+        $limit = (int) $request->input('per_page', 50);
+        $logs = AuditLog::with('ticket')->orderBy('timestamp', 'desc')->take(min($limit, 50))->get();
 
         return response()->json($logs);
     }

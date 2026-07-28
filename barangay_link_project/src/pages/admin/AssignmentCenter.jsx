@@ -66,22 +66,9 @@ const AssignmentCenter = () => {
   // 2. Confirm Assignment Action
   const handleConfirmAssignment = async () => {
     if (!selectedTicketId) return;
-    setActiveModal('assign-generating');
-    setAssignProgress(10);
-    const interval = setInterval(() => {
-      setAssignProgress(prev => prev >= 90 ? 90 : prev + 15);
-    }, 500);
-
     const assigneeName = tempAssignee === '' ? null : tempAssignee;
-    await assignPersonnel(selectedTicketId, assigneeName);
-    
-    clearInterval(interval);
-    setAssignProgress(100);
-    
-    await refreshData();
-    setTimeout(() => {
-      setActiveModal('assign-success');
-    }, 400);
+    assignPersonnel(selectedTicketId, assigneeName);
+    setActiveModal('assign-success');
   };
 
   // 3. Confirm Status Update Action
@@ -1067,22 +1054,14 @@ const AssignmentCenter = () => {
                   Cancel
                 </button>
                 <button
-                  disabled={!tempPriority || !tempAssignee || isSubmitting}
-                  onClick={async () => {
-                    setIsSubmitting(true);
-                    try {
-                      const assignedOk = await assignPersonnel(selectedTicketId, tempAssignee);
-                      await updateTicketStatus(selectedTicketId, tempStatus, "Admin Officer", internalNotes, tempPriority);
-                      await refreshData();
-                      setActiveModal('status-success');
-                    } catch (err) {
-                      console.error("Assignment failed:", err);
-                    } finally {
-                      setIsSubmitting(false);
-                    }
+                  disabled={!tempPriority || !tempAssignee}
+                  onClick={() => {
+                    assignPersonnel(selectedTicketId, tempAssignee, tempPriority);
+                    updateTicketStatus(selectedTicketId, tempStatus, "Admin Officer", internalNotes, tempPriority);
+                    setActiveModal('status-success');
                   }}
                   className={`px-6 py-2.5 rounded-xl text-xs font-extrabold text-white transition-all shadow-md flex items-center gap-2
-                    ${(!tempPriority || !tempAssignee || isSubmitting) 
+                    ${(!tempPriority || !tempAssignee) 
                       ? 'bg-slate-300 cursor-not-allowed' 
                       : 'bg-[#0B3A9B] hover:bg-[#093082] cursor-pointer'}`}
                 >

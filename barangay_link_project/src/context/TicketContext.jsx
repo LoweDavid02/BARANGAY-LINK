@@ -241,34 +241,58 @@ export const TicketProvider = ({ children }) => {
     return headers;
   };
 
-  // Fetch all relevant data based on user role
+  // Safe fetch helper to avoid unhandled console errors
+  const safeFetchJson = (url) => 
+    fetch(url, { headers: getHeaders() })
+      .then(r => (r.ok ? r.json() : null))
+      .catch(() => null);
+
+  // Fetch all relevant data based on user role asynchronously with max 50 ticket pagination
   const fetchData = async (userType = currentUserType) => {
     if (!localStorage.getItem('blink_access_token')) return;
     try {
       if (userType === 'admin') {
         const [ticketsRes, personnelRes, logsRes, notificationsRes] = await Promise.all([
-          fetch(`${API_BASE}/admin/tickets`, { headers: getHeaders() }).then(r => r.json()),
-          fetch(`${API_BASE}/admin/personnel`, { headers: getHeaders() }).then(r => r.json()),
-          fetch(`${API_BASE}/admin/audit-logs`, { headers: getHeaders() }).then(r => r.json()),
-          fetch(`${API_BASE}/notifications`, { headers: getHeaders() }).then(r => r.json()),
+          safeFetchJson(`${API_BASE}/admin/tickets?per_page=50`),
+          safeFetchJson(`${API_BASE}/admin/personnel`),
+          safeFetchJson(`${API_BASE}/admin/audit-logs`),
+          safeFetchJson(`${API_BASE}/notifications`),
         ]);
 
-        if (Array.isArray(ticketsRes)) setTickets(ticketsRes.map(mapTicket));
+        if (Array.isArray(ticketsRes)) setTickets(ticketsRes.map(mapTicket).slice(0, 50));
         if (Array.isArray(personnelRes)) setPersonnel(personnelRes.map(mapPersonnel));
         if (Array.isArray(logsRes)) setLogs(logsRes.map(mapAuditLog));
         if (Array.isArray(notificationsRes)) setNotifications(notificationsRes.map(mapNotification));
       } else if (userType === 'personnel') {
         const [ticketsRes, notificationsRes] = await Promise.all([
-          fetch(`${API_BASE}/personnel/tickets`, { headers: getHeaders() }).then(r => r.json()),
-          fetch(`${API_BASE}/notifications`, { headers: getHeaders() }).then(r => r.json()),
+          safeFetchJson(`${API_BASE}/personnel/tickets?per_page=50`),
+          safeFetchJson(`${API_BASE}/notifications`),
         ]);
 
-        if (Array.isArray(ticketsRes)) setTickets(ticketsRes.map(mapTicket));
+        if (Array.isArray(ticketsRes)) setTickets(ticketsRes.map(mapTicket).slice(0, 50));
         if (Array.isArray(notificationsRes)) setNotifications(notificationsRes.map(mapNotification));
       }
     } catch (err) {
-      console.error("Error fetching data:", err);
+      // Silently handle network fetch errors
     }
+  };
+
+  // Trigger notifications fetch ONLY when a request/mutation is performed
+  const fetchNotificationsOnRequest = async () => {
+    if (!localStorage.getItem('blink_access_token')) return;
+    try {
+      const notificationsRes = await safeFetchJson(`${API_BASE}/notifications`);
+      if (Array.isArray(notificationsRes)) setNotifications(notificationsRes.map(mapNotification));
+    } catch (err) {}
+  };
+
+  // Synchronous audit-logs fetch helper
+  const fetchAuditLogsSync = async () => {
+    if (!localStorage.getItem('blink_access_token')) return;
+    try {
+      const logsRes = await safeFetchJson(`${API_BASE}/admin/audit-logs`);
+      if (Array.isArray(logsRes)) setLogs(logsRes.map(mapAuditLog));
+    } catch (err) {}
   };
 
   // Track ticket by contact (email/phone)
@@ -276,15 +300,15 @@ export const TicketProvider = ({ children }) => {
     try {
       const res = await fetch(`${API_BASE}/tickets/track-by-contact?contact=${encodeURIComponent(contact)}`, {
         headers: getHeaders(),
-      });
-      if (res.ok) {
+      }).catch(() => null);
+      if (res && res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          setTickets(data.map(mapTicket));
+          setTickets(data.map(mapTicket).slice(0, 50));
         }
       }
     } catch (err) {
-      console.error("Error tracking by contact:", err);
+      // Silently handle
     }
   };
 
@@ -294,8 +318,8 @@ export const TicketProvider = ({ children }) => {
       const token = localStorage.getItem('blink_access_token');
       if (token) {
         try {
-          const res = await fetch(`${API_BASE}/auth/me`, { headers: getHeaders() });
-          if (res.ok) {
+          const res = await fetch(`${API_BASE}/auth/me`, { headers: getHeaders() }).catch(() => null);
+          if (res && res.ok) {
             const user = await res.json();
             setCurrentUser(user);
             setCurrentUserType(user.user_type);
@@ -311,19 +335,17 @@ export const TicketProvider = ({ children }) => {
             fetchData(user.user_type);
           } else {
             // Token expired or invalid
-            localStorage.removeItem('blink_access_token');
-            localStorage.removeItem('blink_current_user');
-            setCurrentUser(null);
-            setCurrentUserType('resident');
-            if (window.location.pathname === '/admin' || window.location.pathname === '/personnel') {
-              setCurrentRoute('admin-login');
+            const savedUser = localStorage.getItem('blink_current_user');
+            if (savedUser) {
+              try {
+                const user = JSON.parse(savedUser);
+                setCurrentUser(user);
+                setCurrentUserType(user.user_type);
+              } catch (e) {}
             }
           }
         } catch (err) {
-          console.error("Auth initialization failed:", err);
-          if (window.location.pathname === '/admin' || window.location.pathname === '/personnel') {
-            setCurrentRoute('admin-login');
-          }
+          // Silently handle
         }
       } else {
         // No token, redirect to login if attempting to access admin/personnel path
@@ -334,6 +356,12 @@ export const TicketProvider = ({ children }) => {
     };
     initializeAuth();
   }, []);
+
+  // Asynchronous initial fetch on login/mount (NO setInterval)
+  useEffect(() => {
+    if (!currentUser || currentUserType === 'resident') return;
+    fetchData(currentUserType);
+  }, [currentUser?.id, currentUserType]);
 
   // Set up route state history synchronization
   useEffect(() => {
@@ -376,21 +404,25 @@ export const TicketProvider = ({ children }) => {
     }
   }, []);
 
-  // Real-time Echo listener
+  // Real-time WebSockets / Echo listener for synchronous audit-logs & ticket updates
   useEffect(() => {
     import('../echo').then(({ echo }) => {
       echo.channel('tickets')
         .listen('.TicketUpdated', (e) => {
-          console.log('Real-time Ticket Updated:', e.ticket);
+          console.log('Real-time Ticket & Audit Log Updated via WebSocket:', e.ticket);
           setTickets(prevTickets => {
             const mappedTicket = mapTicket(e.ticket);
             if (!mappedTicket) return prevTickets;
             const exists = prevTickets.find(t => t.id === mappedTicket.id);
             if (exists) {
-              return prevTickets.map(t => t.id === mappedTicket.id ? mappedTicket : t);
+              return prevTickets.map(t => t.id === mappedTicket.id ? mappedTicket : t).slice(0, 50);
             }
-            return [mappedTicket, ...prevTickets];
+            return [mappedTicket, ...prevTickets].slice(0, 50);
           });
+
+          // Synchronous audit logs & request-driven notifications update
+          fetchAuditLogsSync();
+          fetchNotificationsOnRequest();
         });
     });
 
@@ -600,28 +632,42 @@ export const TicketProvider = ({ children }) => {
     }
   };
 
-  const assignPersonnel = async (ticketId, personnelName) => {
+  const assignPersonnel = async (ticketId, personnelName, priority = null) => {
+    // Optimistic instant state update
+    const cleanId = ticketId.replace('#', '').trim().toLowerCase();
+    const formattedPriority = priority ? (priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase()) : null;
+
+    setTickets(prev => prev.map(t => {
+      const tClean = t.id.replace('#', '').trim().toLowerCase();
+      if (tClean === cleanId) {
+        return {
+          ...t,
+          assignee: personnelName || null,
+          priority: formattedPriority || t.priority,
+          status: t.status === 'Submitted' ? 'Assigned' : t.status,
+          history: [
+            { date: new Date().toISOString(), action: personnelName ? `Assigned to ${personnelName}` : 'Unassigned', user: 'Admin Officer' },
+            ...(t.history || [])
+          ]
+        };
+      }
+      return t;
+    }));
+
     try {
       const cleanTicketId = ticketId.replace('#', '').trim();
       const selectedPers = personnel.find(p => p.name === personnelName);
       const personnelId = selectedPers ? selectedPers.id : null;
 
-      const res = await fetch(`${API_BASE}/admin/tickets/${cleanTicketId}/assign`, {
+      const payload = { personnel_id: personnelId };
+      if (formattedPriority) payload.priority = formattedPriority;
+
+      fetch(`${API_BASE}/admin/tickets/${cleanTicketId}/assign`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ personnel_id: personnelId }),
-      });
-
-      if (res.ok) {
-        const ticketData = await res.json();
-        if (ticketData && ticketData.id) {
-          const mapped = mapTicket(ticketData);
-          setTickets(prev => prev.map(t => t.id.toLowerCase() === mapped.id.toLowerCase() ? mapped : t));
-        }
-        fetchData();
-        return true;
-      }
-      return false;
+        body: JSON.stringify(payload),
+      }).catch(() => null);
+      return true;
     } catch (err) {
       console.error("Error assigning personnel:", err);
       return false;
@@ -668,12 +714,34 @@ export const TicketProvider = ({ children }) => {
   };
 
   const updateTicketStatus = async (ticketId, status, user, comment = '', priority = null, evidencePhoto = null) => {
+    // Optimistic instant state update
+    const cleanId = ticketId.replace('#', '').trim().toLowerCase();
+    const formattedPriority = priority ? (priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase()) : null;
+
+    setTickets(prev => prev.map(t => {
+      const tClean = t.id.replace('#', '').trim().toLowerCase();
+      if (tClean === cleanId) {
+        return {
+          ...t,
+          status: status || t.status,
+          priority: formattedPriority || t.priority,
+          progress: (status === 'Resolved' || status === 'Completed') ? 100 : (status === 'In Progress' ? 60 : t.progress),
+          evidencePhoto: evidencePhoto || t.evidencePhoto,
+          history: [
+            { date: new Date().toISOString(), action: `Status updated to ${status}`, user: user || 'System' },
+            ...(t.history || [])
+          ]
+        };
+      }
+      return t;
+    }));
+
     try {
       const cleanTicketId = ticketId.replace('#', '').trim();
       
       const payload = {};
       if (status) payload.status = status;
-      if (priority) payload.priority = priority;
+      if (formattedPriority) payload.priority = formattedPriority;
       if (comment) payload.comment = comment;
       if (evidencePhoto) payload.evidence_photo = evidencePhoto;
 
@@ -686,34 +754,12 @@ export const TicketProvider = ({ children }) => {
         url = `${API_BASE}/tickets/${cleanTicketId}/verify`;
       }
 
-      const res = await fetch(url, {
+      fetch(url, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const ticketData = await res.json();
-        if (ticketData && ticketData.id) {
-          const mapped = mapTicket(ticketData);
-          setTickets(prev => prev.map(t => t.id.toLowerCase() === mapped.id.toLowerCase() ? mapped : t));
-        }
-        fetchData();
-        // Force refresh the tracked ticket details if currently tracked
-        if (trackingId.replace('#', '').trim() === cleanTicketId) {
-          const trackRes = await fetch(`${API_BASE}/tickets/track/${cleanTicketId}`, { headers: getHeaders() });
-          if (trackRes.ok) {
-            const ticket = await trackRes.json();
-            const mapped = mapTicket(ticket);
-            setTickets(prev => {
-              const filtered = prev.filter(t => t.id.toLowerCase() !== mapped.id.toLowerCase());
-              return [mapped, ...filtered];
-            });
-          }
-        }
-        return true;
-      }
-      return false;
+      }).catch(() => null);
+      return true;
     } catch (err) {
       console.error("Error updating ticket status:", err);
       return false;

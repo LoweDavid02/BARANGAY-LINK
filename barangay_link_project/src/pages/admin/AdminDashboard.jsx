@@ -5,7 +5,8 @@ import {
   Inbox,
   Users,
   ChevronDown,
-  MapPin
+  MapPin,
+  Star
 } from 'lucide-react';
 import DashboardMap from '../../components/DashboardMap';
 

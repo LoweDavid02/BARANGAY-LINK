@@ -66,10 +66,14 @@ const AdminLogin = () => {
     if (window.google?.accounts?.id) {
       initGoogle();
     } else {
+      let retries = 0;
       const interval = setInterval(() => {
+        retries++;
         if (window.google?.accounts?.id) {
           clearInterval(interval);
           initGoogle();
+        } else if (retries > 25) {
+          clearInterval(interval);
         }
       }, 200);
       return () => clearInterval(interval);

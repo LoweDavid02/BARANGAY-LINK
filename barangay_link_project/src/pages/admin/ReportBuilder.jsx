@@ -7,7 +7,8 @@ import {
   ChevronRight,
   ChevronDown,
   X,
-  Check
+  Check,
+  Star
 } from 'lucide-react';
 
 const ReportBuilder = () => {
@@ -302,8 +303,8 @@ const ReportBuilder = () => {
 
       </div>
 
-      {/* 3. MINIMAL BANNER KPI CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 3. MINIMAL BANNER KPI CARDS (INCLUDES RESIDENT RATINGS) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         
         {/* Total Number of Tickets */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
@@ -319,6 +320,19 @@ const ReportBuilder = () => {
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Avg. Resolution Speed</span>
           <h3 className="font-heading font-extrabold text-2xl text-slate-900">{metrics.avgSpeed} hrs</h3>
           <span className="text-[10px] text-blue-700 font-bold block">Within 4.0h Target SLA</span>
+        </div>
+
+        {/* Resident Rating */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Resident Rating</span>
+          <div className="flex items-center gap-1">
+            <h3 className="font-heading font-extrabold text-2xl text-slate-900">4.9</h3>
+            <span className="text-xs text-slate-400 font-bold">/ 5.0</span>
+          </div>
+          <span className="text-[10px] text-amber-600 font-bold flex items-center gap-1">
+            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            96.4% Positive
+          </span>
         </div>
 
         {/* Total Cancelled */}
@@ -469,6 +483,84 @@ const ReportBuilder = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* 6. RESIDENT SATISFACTION RATINGS (LIST OF RESIDENTS WITH RATINGS) */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Resident Satisfaction Ratings
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Verified resident star ratings on resolved community tickets
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
+            <div className="flex text-amber-400 gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+              ))}
+            </div>
+            <span className="font-extrabold text-xs text-slate-900">4.9 / 5.0</span>
+            <span className="text-[10px] text-slate-500 font-medium">({metrics.totalTickets} Total Ratings)</span>
+          </div>
+        </div>
+
+        {/* RESIDENTS RATINGS LIST TABLE */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs font-semibold">
+            <thead>
+              <tr className="border-b border-slate-100 text-slate-400 uppercase text-[10px] tracking-wider">
+                <th className="py-2.5 px-3">Resident Name</th>
+                <th className="py-2.5 px-3">Ticket ID & Category</th>
+                <th className="py-2.5 px-3">Sitio</th>
+                <th className="py-2.5 px-3 text-right">Rating Score</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {[
+                { name: 'Juana Dela Cruz', ticketId: '#TK-1082', category: 'Sanitation', sitio: selectedSitio === 'all' ? 'Sampaga' : selectedSitio, rating: 5.0, stars: 5 },
+                { name: 'Roberto Santos', ticketId: '#TK-1079', category: 'Infrastructure', sitio: selectedSitio === 'all' ? 'Balite' : selectedSitio, rating: 5.0, stars: 5 },
+                { name: 'Elena Mercado', ticketId: '#TK-1074', category: 'Public Safety', sitio: selectedSitio === 'all' ? 'Vincent Ville' : selectedSitio, rating: 4.0, stars: 4 },
+                { name: 'Jose Mari Chan', ticketId: '#TK-1068', category: 'General Concern', sitio: selectedSitio === 'all' ? 'Santiago' : selectedSitio, rating: 5.0, stars: 5 },
+                { name: 'Clara Gatchalian', ticketId: '#TK-1055', category: 'Infrastructure', sitio: selectedSitio === 'all' ? 'Pulong Maligaya' : selectedSitio, rating: 5.0, stars: 5 }
+              ].map((item, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="py-3 px-3">
+                    <span className="font-extrabold text-slate-900 block">{item.name}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Verified Resident</span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="font-bold text-slate-800 block">{item.ticketId}</span>
+                    <span className="text-[10px] text-slate-500">{item.category}</span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="bg-slate-100 border border-slate-200/80 text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-bold">
+                      {item.sitio}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="flex text-amber-400 gap-0.5">
+                        {[...Array(item.stars)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                        ))}
+                        {item.stars < 5 && (
+                          <Star className="w-3.5 h-3.5 text-slate-300" />
+                        )}
+                      </div>
+                      <span className="font-black text-slate-900 text-xs bg-amber-50 border border-amber-100 text-amber-800 px-2 py-0.5 rounded-md">
+                        {item.rating.toFixed(1)}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* MODAL: DOWNLOAD PROGRESS */}

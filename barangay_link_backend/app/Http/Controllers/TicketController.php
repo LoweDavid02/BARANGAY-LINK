@@ -333,7 +333,8 @@ class TicketController extends Controller
             $query->where('priority', $request->priority);
         }
 
-        $tickets = $query->orderBy('created_at', 'desc')->get();
+        $limit = (int) $request->input('per_page', 50);
+        $tickets = $query->orderBy('created_at', 'desc')->take(min($limit, 50))->get();
 
         return response()->json($tickets);
     }
@@ -345,6 +346,7 @@ class TicketController extends Controller
     {
         $request->validate([
             'personnel_id' => 'nullable|exists:personnels,id',
+            'priority' => 'nullable|string|in:Low,Medium,High,Urgent',
         ]);
 
         $ticket = Ticket::with(['resident', 'location'])->find($id);
@@ -358,12 +360,11 @@ class TicketController extends Controller
             $oldPersonnelId = $ticket->assigned_personnel_id;
             $newPersonnelId = $request->personnel_id;
 
-            if ($oldPersonnelId == $newPersonnelId) {
-                return response()->json($ticket);
-            }
-
             // Update ticket
             $ticket->assigned_personnel_id = $newPersonnelId;
+            if ($request->has('priority') && !empty($request->priority)) {
+                $ticket->priority = ucfirst(strtolower($request->priority));
+            }
             
             if ($newPersonnelId) {
                 if ($ticket->status === 'Submitted') {
@@ -643,18 +644,21 @@ class TicketController extends Controller
     /**
      * Personnel: List assigned tickets.
      */
-    public function personnelTickets()
+    public function personnelTickets(Request $request)
     {
         $user = Auth::user();
         if (!$user || $user->user_type !== 'personnel' || !$user->personnel) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        $limit = (int) $request->input('per_page', 50);
+
         $tickets = Ticket::with(['resident', 'location', 'assignedPersonnel.user', 'history' => function($q) {
             $q->orderBy('action_date', 'desc');
         }])
         ->where('assigned_personnel_id', $user->personnel->id)
         ->orderBy('created_at', 'desc')
+        ->take(min($limit, 50))
         ->get();
 
         return response()->json($tickets);
